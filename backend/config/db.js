@@ -16,3 +16,5 @@ pool.query("SELECT NOW()", (err, result) => {
     console.log(result.rows);
   }
 });
+
+module.exports = pool;

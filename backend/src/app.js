@@ -13,20 +13,33 @@ const { notFound, errorHandler } = require('../middleware/error.middleware');
 
 const app = express();
 
-const allowedOrigins = (process.env.CLIENT_URL || '')
+const allowedOrigins = (process.env.CLIENT_ORIGINS || process.env.CLIENT_URL || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
-  app.get("/", (req, res) => {
-    res.json({
-      message: "API ASAKO fonctionne 🚀",
-      status: "OK",
-    });
+
+const isAllowedOrigin = (origin) => {
+  if (!origin || process.env.NODE_ENV !== 'production') return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === 'vercel.app' || hostname.endsWith('.vercel.app');
+  } catch (_error) {
+    return false;
+  }
+};
+
+app.get("/", (req, res) => {
+  res.json({
+    message: "API ASAKO fonctionne",
+    status: "OK",
   });
+});
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
     return callback(new Error('Origine non autorisee par CORS'));

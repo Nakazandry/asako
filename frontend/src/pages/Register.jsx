@@ -20,7 +20,7 @@ export default function Register() {
       navigate('/mon-espace');
     } catch (error) {
       const message = error.response?.data?.message
-        || 'API indisponible. Verifiez que le backend tourne sur le port 5000.';
+        || 'API indisponible. Verifiez la configuration VITE_API_URL et les en-tetes CORS du backend.';
       toast.error(message);
     } finally {
       setLoading(false);
