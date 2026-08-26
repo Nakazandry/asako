@@ -131,8 +131,8 @@ export default function Offres() {
       <DataTable columns={columns} rows={rows} loading={loading} meta={meta} onPageChange={setPage} />
 
       {formOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm">
-          <form className="panel max-h-[90vh] w-full max-w-2xl overflow-hidden shadow-2xl" onSubmit={saveOffer}>
+        <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm">
+          <form className="modal-card panel max-h-[90vh] w-full max-w-2xl overflow-hidden shadow-2xl" onSubmit={saveOffer}>
             <div className="border-b border-[#ead7da] px-5 py-4">
               <p className="text-xs font-black uppercase tracking-wide text-[#8f4a56]">Offre</p>
               <h2 className="mt-1 text-lg font-black text-[#2e2430]">{editing ? 'Modifier une offre' : 'Ajouter une offre'}</h2>
@@ -164,8 +164,8 @@ export default function Offres() {
       )}
 
       {applyTarget && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm">
-          <form className="panel w-full max-w-xl overflow-hidden shadow-2xl" onSubmit={submitApplication}>
+        <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm">
+          <form className="modal-card panel w-full max-w-xl overflow-hidden shadow-2xl" onSubmit={submitApplication}>
             <div className="border-b border-[#ead7da] px-5 py-4">
               <p className="text-xs font-black uppercase tracking-wide text-[#8f4a56]">Candidature</p>
               <h2 className="mt-1 text-lg font-black text-[#2e2430]">Postuler: {applyTarget.titre}</h2>
