@@ -9,6 +9,7 @@ const offreRoutes = require('../routes/offre.routes');
 const candidatureRoutes = require('../routes/candidature.routes');
 const entretienRoutes = require('../routes/entretien.routes');
 const dashboardRoutes = require('../routes/dashboard.routes');
+const notificationRoutes = require('../routes/notification.routes');
 const { notFound, errorHandler } = require('../middleware/error.middleware');
 
 const app = express();
@@ -60,6 +61,7 @@ app.use('/api/offres', offreRoutes);
 app.use('/api/candidatures', candidatureRoutes);
 app.use('/api/entretiens', entretienRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -1,5 +1,7 @@
 const Candidature = require('../models/candidature.model');
+const Offre = require('../models/offre.model');
 const { getPagination, paginated } = require('../utils/pagination');
+const { isPast } = require('../utils/dates');
 const path = require('path');
 
 const statuses = ['En attente', 'Entretien', 'Accepté', 'Refusé', 'Accepte', 'Refuse'];
@@ -7,8 +9,11 @@ const statuses = ['En attente', 'Entretien', 'Accepté', 'Refusé', 'Accepte', '
 const listCandidatures = async (req, res, next) => {
   try {
     const { page, limit, offset } = getPagination(req.query);
-    const userId = req.user.role === 'admin' ? req.query.userId : req.user.id;
+    const isAdmin = req.user.role === 'admin';
+    const userId = isAdmin ? req.query.userId : req.user.id;
     const result = await Candidature.list({ statut: req.query.statut, userId, limit, offset });
+    if (isAdmin) await Candidature.markAllSeenByAdmin();
+    else await Candidature.markAllSeenByUser(req.user.id);
     res.json(paginated(result.rows, result.total, page, limit));
   } catch (error) {
     next(error);
@@ -32,6 +37,11 @@ const createCandidature = async (req, res, next) => {
   try {
     const { offre_id, lettre_motivation } = req.body;
     if (!req.file) return res.status(400).json({ message: 'Le CV PDF est obligatoire' });
+    const offre = await Offre.findById(offre_id);
+    if (!offre) return res.status(404).json({ message: 'Offre introuvable' });
+    if (isPast(offre.date_limite)) {
+      return res.status(400).json({ message: 'La date limite de cette offre est deja passee, candidature fermee' });
+    }
     const duplicate = await Candidature.findDuplicate(req.user.id, offre_id);
     if (duplicate) return res.status(409).json({ message: 'Vous avez deja postule a cette offre' });
 

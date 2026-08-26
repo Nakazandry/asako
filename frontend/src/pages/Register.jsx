@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
 import authImage from '../assets/images/auth-workspace.webp';
@@ -10,6 +11,7 @@ export default function Register() {
   const { register } = useAuth();
   const [form, setForm] = useState({ nom: '', prenom: '', email: '', mot_de_passe: '' });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -64,7 +66,12 @@ export default function Register() {
               </label>
               <label className="block sm:col-span-2">
                 <span className="label">Mot de passe</span>
-                <input className="input mt-1" type="password" required minLength="6" value={form.mot_de_passe} onChange={(e) => setForm({ ...form, mot_de_passe: e.target.value })} />
+                <div className="mt-1 flex items-center gap-2 rounded-md border border-[#ead7da] bg-white px-3 focus-within:ring-2 focus-within:ring-[#EEC4C9]">
+                  <input className="w-full border-0 py-2 text-sm outline-none" type={showPassword ? 'text' : 'password'} required minLength="6" value={form.mot_de_passe} onChange={(e) => setForm({ ...form, mot_de_passe: e.target.value })} />
+                  <button type="button" tabIndex={-1} aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} onClick={() => setShowPassword(!showPassword)} className="p-1 text-[#b4868f] transition hover:text-[#8f4a56]">
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
               </label>
               <button className="btn-primary sm:col-span-2" disabled={loading}>{loading ? 'Creation...' : 'Creer mon compte'}</button>
             </form>

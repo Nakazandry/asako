@@ -79,10 +79,31 @@ class Candidature {
 
   static async updateStatus(id, statut) {
     const { rows } = await pool.query(
-      'UPDATE candidatures SET statut = $1 WHERE id = $2 RETURNING *',
+      'UPDATE candidatures SET statut = $1, vu_candidat = FALSE WHERE id = $2 RETURNING *',
       [statut, id]
     );
     return rows[0];
+  }
+
+  static async markAllSeenByAdmin() {
+    await pool.query('UPDATE candidatures SET vu_admin = TRUE WHERE vu_admin = FALSE');
+  }
+
+  static async markAllSeenByUser(utilisateurId) {
+    await pool.query('UPDATE candidatures SET vu_candidat = TRUE WHERE utilisateur_id = $1', [utilisateurId]);
+  }
+
+  static async countUnseenAdmin() {
+    const { rows } = await pool.query('SELECT COUNT(*) FROM candidatures WHERE vu_admin = FALSE');
+    return Number(rows[0].count);
+  }
+
+  static async countUnseenUser(utilisateurId) {
+    const { rows } = await pool.query(
+      'SELECT COUNT(*) FROM candidatures WHERE utilisateur_id = $1 AND vu_candidat = FALSE',
+      [utilisateurId]
+    );
+    return Number(rows[0].count);
   }
 
   static async delete(id) {
