@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FiEye, FiFilter, FiUsers } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import api, { fileUrl } from '../services/api';
+import api, { voirCv } from '../services/api';
 import DataTable from '../components/DataTable.jsx';
 import PageHero from '../components/PageHero.jsx';
 import { formatDate, statusClass, statusLabel } from '../utils/format.js';
@@ -46,7 +46,7 @@ export default function Candidatures() {
     { key: 'date_candidature', header: 'Date', render: (row) => formatDate(row.date_candidature) },
     { key: 'documents', header: 'Documents', render: (row) => (
       <div className="flex flex-wrap gap-2">
-        <a className="btn-secondary px-3 py-2" href={fileUrl(row.cv)} target="_blank" rel="noreferrer"><FiEye /> CV</a>
+        <button className="btn-secondary px-3 py-2" onClick={() => voirCv(row.id).catch((e) => toast.error(e.message))}><FiEye /> CV</button>
         <button className="btn-secondary px-3 py-2" onClick={() => setLetter(row)}>Lettre</button>
       </div>
     ) },

@@ -7,6 +7,7 @@ router.use(protect);
 
 router.get('/', controller.listCandidatures);
 router.get('/:id', controller.getCandidature);
+router.get('/:id/cv', controller.downloadCv);
 router.post('/', authorize('candidat'), upload.single('cv'), controller.createCandidature);
 router.patch('/:id/statut', authorize('admin'), controller.updateStatut);
 router.delete('/:id', authorize('admin'), controller.deleteCandidature);

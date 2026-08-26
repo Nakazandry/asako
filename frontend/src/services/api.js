@@ -62,4 +62,25 @@ export const fileUrl = (path) => {
   return `${serverUrl}${path}`;
 };
 
+export const voirCv = async (candidatureId) => {
+  try {
+    const response = await api.get(`/candidatures/${candidatureId}/cv`, {
+      responseType: "blob",
+    });
+    if (response.data?.type === "application/json") {
+      throw new Error("CV non disponible");
+    }
+    const url = URL.createObjectURL(
+      new Blob([response.data], { type: "application/pdf" })
+    );
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (error) {
+    if (error.response?.status === 404) {
+      throw new Error("CV non disponible");
+    }
+    throw error;
+  }
+};
+
 export default api;

@@ -7,11 +7,20 @@ const baseSelect = `
 `;
 
 class Candidature {
-  static async create({ utilisateur_id, offre_id, cv, lettre_motivation }) {
+  static async create({ utilisateur_id, offre_id, cv, cvData, cvNom, lettre_motivation }) {
     const { rows } = await pool.query(
-      `INSERT INTO candidatures (utilisateur_id, offre_id, cv, lettre_motivation, statut)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [utilisateur_id, offre_id, cv, lettre_motivation, 'En attente']
+      `INSERT INTO candidatures (utilisateur_id, offre_id, cv, cv_data, cv_nom, lettre_motivation, statut)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [utilisateur_id, offre_id, cv, cvData, cvNom, lettre_motivation, 'En attente']
+    );
+    return rows[0];
+  }
+
+  static async getCvFile(id) {
+    const { rows } = await pool.query(
+      `SELECT cv_data, cv_nom, cv, utilisateur_id
+       FROM candidatures WHERE id = $1`,
+      [id]
     );
     return rows[0];
   }

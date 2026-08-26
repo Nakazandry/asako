@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FiBriefcase, FiCalendar, FiHome, FiSend } from 'react-icons/fi';
-import api, { fileUrl } from '../services/api';
+import api, { voirCv } from '../services/api';
 import DataTable from '../components/DataTable.jsx';
 import StatCard from '../components/StatCard.jsx';
 import PageHero from '../components/PageHero.jsx';
@@ -28,7 +28,7 @@ export default function MonEspace() {
     { key: 'offre', header: 'Offre', render: (row) => <div><p className="font-semibold text-slate-950">{row.offre_titre}</p><p className="text-xs text-slate-500">{row.offre_localisation}</p></div> },
     { key: 'date_candidature', header: 'Date', render: (row) => formatDate(row.date_candidature) },
     { key: 'statut', header: 'Statut', render: (row) => <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${statusClass(row.statut)}`}>{statusLabel(row.statut)}</span> },
-    { key: 'cv', header: 'CV', render: (row) => <a className="font-semibold text-[#8f4a56]" href={fileUrl(row.cv)} target="_blank" rel="noreferrer">Voir PDF</a> },
+    { key: 'cv', header: 'CV', render: (row) => <button className="font-semibold text-[#8f4a56] cursor-pointer" onClick={() => voirCv(row.id).catch((e) => alert(e.message))}>Voir PDF</button> },
   ], []);
 
   return (

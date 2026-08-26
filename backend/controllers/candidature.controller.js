@@ -1,5 +1,6 @@
 const Candidature = require('../models/candidature.model');
 const { getPagination, paginated } = require('../utils/pagination');
+const path = require('path');
 
 const statuses = ['En attente', 'Entretien', 'Accepté', 'Refusé', 'Accepte', 'Refuse'];
 
@@ -37,10 +38,44 @@ const createCandidature = async (req, res, next) => {
     const candidature = await Candidature.create({
       utilisateur_id: req.user.id,
       offre_id,
-      cv: `/uploads/${req.file.filename}`,
+      cv: req.file.originalname,
+      cvData: req.file.buffer,
+      cvNom: req.file.originalname,
       lettre_motivation,
     });
     res.status(201).json(candidature);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const downloadCv = async (req, res, next) => {
+  try {
+    const file = await Candidature.getCvFile(req.params.id);
+    if (!file) return res.status(404).json({ message: 'Candidature introuvable' });
+    if (req.user.role !== 'admin' && file.utilisateur_id !== req.user.id) {
+      return res.status(403).json({ message: 'Acces non autorise' });
+    }
+
+    if (file.cv_data) {
+      const nom = file.cv_nom || 'cv.pdf';
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename*=UTF-8''${encodeURIComponent(nom)}`
+      );
+      return res.send(file.cv_data);
+    }
+
+    if (file.cv && file.cv.startsWith('/uploads/')) {
+      return res.sendFile(path.join(__dirname, '..', file.cv), (err) => {
+        if (err && !res.headersSent) {
+          res.status(404).json({ message: 'Fichier CV introuvable sur le serveur' });
+        }
+      });
+    }
+
+    res.status(404).json({ message: 'CV non disponible' });
   } catch (error) {
     next(error);
   }
@@ -68,4 +103,4 @@ const deleteCandidature = async (req, res, next) => {
   }
 };
 
-module.exports = { listCandidatures, getCandidature, createCandidature, updateStatut, deleteCandidature };
+module.exports = { listCandidatures, getCandidature, createCandidature, downloadCv, updateStatut, deleteCandidature };
