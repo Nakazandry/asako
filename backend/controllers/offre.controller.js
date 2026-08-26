@@ -1,5 +1,6 @@
 const Offre = require('../models/offre.model');
 const { getPagination, paginated } = require('../utils/pagination');
+const { isPast, isoDay } = require('../utils/dates');
 
 const listOffres = async (req, res, next) => {
   try {
@@ -23,6 +24,9 @@ const getOffre = async (req, res, next) => {
 
 const createOffre = async (req, res, next) => {
   try {
+    if (isPast(req.body.date_limite)) {
+      return res.status(400).json({ message: 'La date limite est deja passee' });
+    }
     const offre = await Offre.create(req.body);
     res.status(201).json(offre);
   } catch (error) {
@@ -32,8 +36,16 @@ const createOffre = async (req, res, next) => {
 
 const updateOffre = async (req, res, next) => {
   try {
+    const current = await Offre.findById(req.params.id);
+    if (!current) return res.status(404).json({ message: 'Offre introuvable' });
+    if (
+      req.body.date_limite !== undefined &&
+      isPast(req.body.date_limite) &&
+      isoDay(current.date_limite) !== isoDay(req.body.date_limite)
+    ) {
+      return res.status(400).json({ message: 'La date limite est deja passee' });
+    }
     const offre = await Offre.update(req.params.id, req.body);
-    if (!offre) return res.status(404).json({ message: 'Offre introuvable' });
     res.json(offre);
   } catch (error) {
     next(error);

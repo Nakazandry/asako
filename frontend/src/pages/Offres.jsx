@@ -10,6 +10,13 @@ import { formatDate } from '../utils/format.js';
 
 const emptyOffer = { titre: '', description: '', localisation: '', salaire: '', date_limite: '' };
 
+const todayStr = () => {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+};
+
+const isExpired = (row) => Boolean(row.date_limite) && row.date_limite.slice(0, 10) < todayStr();
+
 export default function Offres() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
@@ -92,6 +99,8 @@ export default function Offres() {
             <button className="btn-secondary px-3 py-2" onClick={() => { setEditing(row); setOfferForm({ ...row, date_limite: row.date_limite?.slice(0, 10) || '' }); setFormOpen(true); }}><FiEdit2 /></button>
             <button className="btn-secondary px-3 py-2 text-rose-600" onClick={() => setDeleteTarget(row)}><FiTrash2 /></button>
           </>
+        ) : isExpired(row) ? (
+          <span className="rounded-full border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-500">Date limite passee</span>
         ) : (
           <button className="btn-primary px-3 py-2" onClick={() => setApplyTarget(row)}><FiSend /> Postuler</button>
         )}
@@ -138,7 +147,7 @@ export default function Offres() {
               ))}
               <label className="block">
                 <span className="label">Date limite</span>
-                <input className="input mt-1" type="date" value={offerForm.date_limite || ''} onChange={(e) => setOfferForm({ ...offerForm, date_limite: e.target.value })} />
+                <input className="input mt-1" type="date" min={editing ? undefined : todayStr()} value={offerForm.date_limite || ''} onChange={(e) => setOfferForm({ ...offerForm, date_limite: e.target.value })} />
               </label>
               <label className="block sm:col-span-2">
                 <span className="label">Description</span>
