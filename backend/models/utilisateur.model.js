@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 
-const publicFields = 'id, nom, prenom, email, role, date_creation';
+const publicFields = 'id, nom, prenom, email, role, photo_type, date_creation';
 
 class Utilisateur {
   static async create({ nom, prenom, email, mot_de_passe, role = 'candidat' }) {
@@ -71,6 +71,36 @@ class Utilisateur {
       params
     );
     return rows[0];
+  }
+
+  static async updateProfile(id, values) {
+    const allowed = ['nom', 'prenom', 'email', 'photo_data', 'photo_type'];
+    const updates = [];
+    const params = [];
+
+    allowed.forEach((key) => {
+      if (values[key] !== undefined) {
+        params.push(values[key]);
+        updates.push(`${key} = $${params.length}`);
+      }
+    });
+
+    if (!updates.length) return this.findById(id);
+    params.push(id);
+
+    const { rows } = await pool.query(
+      `UPDATE utilisateurs SET ${updates.join(', ')} WHERE id = $${params.length} RETURNING ${publicFields}`,
+      params
+    );
+    return rows[0];
+  }
+
+  static async getPhoto(id) {
+    const { rows } = await pool.query(
+      'SELECT photo_data, photo_type FROM utilisateurs WHERE id = $1',
+      [id]
+    );
+    return rows[0] || null;
   }
 
   static async delete(id) {

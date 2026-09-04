@@ -36,7 +36,15 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const value = useMemo(() => ({ token, user, isAuthenticated: Boolean(token), login, register, logout }), [token, user]);
+  const setCurrentUser = (nextUser) => {
+    localStorage.setItem('asako_user', JSON.stringify(nextUser));
+    setUser(nextUser);
+  };
+
+  const value = useMemo(
+    () => ({ token, user, isAuthenticated: Boolean(token), login, register, logout, setCurrentUser }),
+    [token, user]
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

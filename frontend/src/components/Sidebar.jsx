@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FiBriefcase, FiCalendar, FiGrid, FiHome, FiSettings, FiUser, FiUsers, FiX } from 'react-icons/fi';
+import { FiBell, FiBriefcase, FiCalendar, FiGrid, FiHome, FiSettings, FiUser, FiUsers, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext.jsx';
 import { usePreferences } from '../context/PreferencesContext.jsx';
 import api from '../services/api';
@@ -12,25 +12,25 @@ export default function Sidebar({ open, onClose }) {
   const { t } = usePreferences();
   const location = useLocation();
   const admin = user?.role === 'admin';
-  const [notifications, setNotifications] = useState(0);
+  const [unseen, setUnseen] = useState(0);
 
-  const loadNotifications = useCallback(() => {
-    api.get('/notifications')
-      .then((res) => setNotifications(res.data.count || 0))
+  const loadUnseen = useCallback(() => {
+    api.get('/candidatures/unseen-count')
+      .then((res) => setUnseen(res.data.count || 0))
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    loadNotifications();
-    const interval = setInterval(loadNotifications, 25000);
+    loadUnseen();
+    const interval = setInterval(loadUnseen, 25000);
     return () => clearInterval(interval);
-  }, [loadNotifications, location.pathname]);
+  }, [loadUnseen, location.pathname]);
 
   const handleNavClick = (badge) => {
     onClose();
-    if (badge && notifications > 0) {
-      setNotifications(0);
-      const timer = setTimeout(loadNotifications, 1200);
+    if (badge && unseen > 0) {
+      setUnseen(0);
+      const timer = setTimeout(loadUnseen, 1200);
       return () => clearTimeout(timer);
     }
   };
@@ -41,6 +41,7 @@ export default function Sidebar({ open, onClose }) {
         { to: '/offres', label: t('nav.offers'), icon: FiBriefcase },
         { to: '/candidatures', label: t('nav.applications'), icon: FiUsers, badge: true },
         { to: '/entretiens', label: t('nav.interviews'), icon: FiCalendar },
+        { to: '/notifications', label: t('nav.notifications'), icon: FiBell },
         { to: '/profil', label: t('nav.profile'), icon: FiUser },
         { to: '/parametres', label: t('nav.settings'), icon: FiSettings },
       ]
@@ -48,6 +49,7 @@ export default function Sidebar({ open, onClose }) {
         { to: '/mon-espace', label: t('nav.mySpace'), icon: FiHome, badge: true },
         { to: '/offres', label: t('nav.offers'), icon: FiBriefcase },
         { to: '/entretiens', label: t('nav.interviews'), icon: FiCalendar },
+        { to: '/notifications', label: t('nav.notifications'), icon: FiBell },
         { to: '/profil', label: t('nav.profile'), icon: FiUser },
         { to: '/parametres', label: t('nav.settings'), icon: FiSettings },
       ];
@@ -100,10 +102,10 @@ export default function Sidebar({ open, onClose }) {
                     <Icon className="text-lg" />
                   </span>
                   <span className="truncate">{label}</span>
-                  {badge && notifications > 0 && (
+                  {badge && unseen > 0 && (
                     <span className="relative ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1.5 text-[11px] font-black text-white shadow-md shadow-rose-900/40 ring-2 ring-[#2e2430]">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60" />
-                      <span className="relative">{notifications > 99 ? '99+' : notifications}</span>
+                      <span className="relative">{unseen > 99 ? '99+' : unseen}</span>
                     </span>
                   )}
                 </>

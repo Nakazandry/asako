@@ -6,6 +6,7 @@ const upload = require('../middleware/upload.middleware');
 router.use(protect);
 
 router.get('/', controller.listCandidatures);
+router.get('/unseen-count', controller.unseenCount);
 router.get('/:id', controller.getCandidature);
 router.get('/:id/cv', controller.downloadCv);
 router.post('/', authorize('candidat'), upload.single('cv'), controller.createCandidature);

@@ -2,9 +2,21 @@ const Candidature = require('../models/candidature.model');
 const Offre = require('../models/offre.model');
 const { getPagination, paginated } = require('../utils/pagination');
 const { isPast } = require('../utils/dates');
+const { createNotification, notifyAdmins } = require('../utils/notify');
 const path = require('path');
 
 const statuses = ['En attente', 'Entretien', 'Accepté', 'Refusé', 'Accepte', 'Refuse'];
+
+const unseenCount = async (req, res, next) => {
+  try {
+    const count = req.user.role === 'admin'
+      ? await Candidature.countUnseenAdmin()
+      : await Candidature.countUnseenUser(req.user.id);
+    res.json({ count });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const listCandidatures = async (req, res, next) => {
   try {
@@ -53,6 +65,11 @@ const createCandidature = async (req, res, next) => {
       cvNom: req.file.originalname,
       lettre_motivation,
     });
+    notifyAdmins(
+      'Nouvelle candidature',
+      `Le candidat ${req.user.prenom} ${req.user.nom} a postule a l'offre "${offre.titre}".`,
+      'NOUVELLE_CANDIDATURE'
+    ).catch(() => {});
     res.status(201).json(candidature);
   } catch (error) {
     next(error);
@@ -98,6 +115,23 @@ const updateStatut = async (req, res, next) => {
     const normalized = statut === 'Accepte' ? 'Accepté' : statut === 'Refuse' ? 'Refusé' : statut;
     const candidature = await Candidature.updateStatus(req.params.id, normalized);
     if (!candidature) return res.status(404).json({ message: 'Candidature introuvable' });
+
+    const full = await Candidature.findById(req.params.id);
+    if (full) {
+      const statusCopy = {
+        'Accepté': 'a ete acceptee',
+        'Refusé': 'a ete refusee',
+        'Entretien': 'a ete retenue pour un entretien',
+        'En attente': 'est de nouveau en attente',
+      }[normalized] || `a change de statut (${normalized})`;
+      createNotification(
+        full.utilisateur_id,
+        'Mise a jour de votre candidature',
+        `Votre candidature pour l'offre "${full.offre_titre}" ${statusCopy}.`,
+        'CANDIDATURE'
+      ).catch(() => {});
+    }
+
     res.json(candidature);
   } catch (error) {
     next(error);
@@ -113,4 +147,4 @@ const deleteCandidature = async (req, res, next) => {
   }
 };
 
-module.exports = { listCandidatures, getCandidature, createCandidature, downloadCv, updateStatut, deleteCandidature };
+module.exports = { listCandidatures, getCandidature, createCandidature, downloadCv, updateStatut, deleteCandidature, unseenCount };

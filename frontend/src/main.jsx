@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { PreferencesProvider } from './context/PreferencesContext.jsx';
+import { NotificationsProvider } from './context/NotificationsContext.jsx';
 import './styles.css';
 
 createRoot(document.getElementById('root')).render(
@@ -12,8 +13,10 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <PreferencesProvider>
         <AuthProvider>
-          <App />
-          <Toaster position="top-right" toastOptions={{ duration: 3200 }} />
+          <NotificationsProvider>
+            <App />
+            <Toaster position="top-right" toastOptions={{ duration: 3200 }} />
+          </NotificationsProvider>
         </AuthProvider>
       </PreferencesProvider>
     </BrowserRouter>

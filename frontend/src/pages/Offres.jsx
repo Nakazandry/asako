@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { FiBriefcase, FiEdit2, FiMapPin, FiPlus, FiSearch, FiSend, FiTrash2 } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import { FiBriefcase, FiCalendar, FiChevronLeft, FiChevronRight, FiClock, FiDollarSign, FiEdit2, FiInbox, FiMapPin, FiPlus, FiSearch, FiSend, FiTrash2, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
-import DataTable from '../components/DataTable.jsx';
+import Loader from '../components/Loader.jsx';
 import ConfirmModal from '../components/ConfirmModal.jsx';
 import PageHero from '../components/PageHero.jsx';
 import { formatDate } from '../utils/format.js';
@@ -16,6 +16,14 @@ const todayStr = () => {
 };
 
 const isExpired = (row) => Boolean(row.date_limite) && row.date_limite.slice(0, 10) < todayStr();
+
+const cardAccents = [
+  { bar: 'from-[#eec4c9] to-[#8f4a56]', tile: 'from-[#fff7f8] to-[#f8e1e5] text-[#8f4a56]', text: 'text-[#8f4a56]', chip: 'bg-[#fff7f8] text-[#8f4a56] ring-[#ead7da]/70' },
+  { bar: 'from-emerald-300 to-emerald-600', tile: 'from-emerald-50 to-emerald-100 text-emerald-700', text: 'text-emerald-600', chip: 'bg-emerald-50 text-emerald-700 ring-emerald-200/70' },
+  { bar: 'from-amber-300 to-amber-500', tile: 'from-amber-50 to-amber-100 text-amber-700', text: 'text-amber-600', chip: 'bg-amber-50 text-amber-700 ring-amber-200/70' },
+  { bar: 'from-slate-300 to-slate-500', tile: 'from-slate-100 to-slate-200 text-slate-700', text: 'text-slate-600', chip: 'bg-slate-100 text-slate-700 ring-slate-300/70' },
+  { bar: 'from-teal-300 to-teal-600', tile: 'from-teal-50 to-teal-100 text-teal-700', text: 'text-teal-600', chip: 'bg-teal-50 text-teal-700 ring-teal-200/70' },
+];
 
 export default function Offres() {
   const { user } = useAuth();
@@ -30,6 +38,7 @@ export default function Offres() {
   const [offerForm, setOfferForm] = useState(emptyOffer);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [applyTarget, setApplyTarget] = useState(null);
+  const [detailTarget, setDetailTarget] = useState(null);
   const [application, setApplication] = useState({ cv: null, lettre_motivation: '' });
 
   const load = async () => {
@@ -87,26 +96,22 @@ export default function Offres() {
     }
   };
 
-  const columns = useMemo(() => [
-    { key: 'titre', header: 'Titre', render: (row) => <div><p className="font-semibold text-[#2e2430]">{row.titre}</p><p className="mt-1 inline-flex items-center gap-1 text-xs text-[#7a6670]"><FiMapPin />{row.localisation}</p></div> },
-    { key: 'description', header: 'Description', render: (row) => <span className="line-clamp-2 max-w-md">{row.description}</span> },
-    { key: 'salaire', header: 'Salaire', render: (row) => row.salaire || '-' },
-    { key: 'date_limite', header: 'Date limite', render: (row) => formatDate(row.date_limite) },
-    { key: 'actions', header: 'Actions', render: (row) => (
-      <div className="flex flex-wrap gap-2">
-        {isAdmin ? (
-          <>
-            <button className="btn-secondary px-3 py-2" onClick={() => { setEditing(row); setOfferForm({ ...row, date_limite: row.date_limite?.slice(0, 10) || '' }); setFormOpen(true); }}><FiEdit2 /></button>
-            <button className="btn-secondary px-3 py-2 text-rose-600" onClick={() => setDeleteTarget(row)}><FiTrash2 /></button>
-          </>
-        ) : isExpired(row) ? (
-          <span className="rounded-full border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-500">Date limite passee</span>
-        ) : (
-          <button className="btn-primary px-3 py-2" onClick={() => setApplyTarget(row)}><FiSend /> Postuler</button>
-        )}
-      </div>
-    ) },
-  ], [isAdmin]);
+  const startEdit = (row) => {
+    setDetailTarget(null);
+    setEditing(row);
+    setOfferForm({ ...row, date_limite: row.date_limite?.slice(0, 10) || '' });
+    setFormOpen(true);
+  };
+
+  const startDelete = (row) => {
+    setDetailTarget(null);
+    setDeleteTarget(row);
+  };
+
+  const startApply = (row) => {
+    setDetailTarget(null);
+    setApplyTarget(row);
+  };
 
   return (
     <div className="space-y-5">
@@ -128,7 +133,168 @@ export default function Offres() {
         </div>
         <button className="btn-secondary">Rechercher</button>
       </form>
-      <DataTable columns={columns} rows={rows} loading={loading} meta={meta} onPageChange={setPage} />
+
+      {loading ? (
+        <Loader />
+      ) : rows.length ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {rows.map((row) => {
+              const expired = isExpired(row);
+              const accent = cardAccents[(row.id || 0) % cardAccents.length];
+              return (
+                <article
+                  key={row.id}
+                  onClick={() => setDetailTarget(row)}
+                  className="panel panel-hover group relative flex cursor-pointer flex-col overflow-hidden transition-all duration-200 hover:border-[#dcc2c8] active:scale-[0.99]"
+                >
+                  <span className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent.bar} opacity-90`} />
+                  <div className="flex flex-1 flex-col p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${accent.tile} shadow-inner ring-1 ring-white/60 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105`}>
+                        <FiBriefcase className="text-xl" />
+                      </span>
+                      {expired ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-rose-600">
+                          <FiClock className="text-xs" /> Expiree
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-700">
+                          <span className="relative flex h-1.5 w-1.5">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          </span>
+                          Ouverte
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="mt-4 text-lg font-black leading-snug text-[#2e2430] transition-colors duration-200 group-hover:text-[#8f4a56]">{row.titre}</h3>
+                    <p className="mt-1.5 flex items-center gap-1.5 text-sm text-[#7a6670]">
+                      <FiMapPin className={`shrink-0 ${accent.text}`} /> {row.localisation || 'Localisation non precisee'}
+                    </p>
+                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#4b3a42]">{row.description}</p>
+                    <div className="mt-auto pt-5">
+                      <div className="flex flex-wrap items-center gap-2 border-t border-[#f1e2e5]/80 pt-4">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black ring-1 ${accent.chip}`}>
+                          <FiDollarSign /> {row.salaire || 'A negocier'}
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ring-1 ${expired ? 'bg-rose-50 text-rose-600 ring-rose-200/70' : 'bg-white text-[#7a6670] ring-[#ead7da]/70'}`}>
+                          <FiCalendar /> {formatDate(row.date_limite)}
+                        </span>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        {isAdmin ? (
+                          <>
+                            <button className="btn-secondary px-3 py-2" onClick={() => startEdit(row)}><FiEdit2 /> Modifier</button>
+                            <button className="btn-secondary px-3 py-2 text-rose-600" onClick={() => startDelete(row)}><FiTrash2 /> Supprimer</button>
+                          </>
+                        ) : expired ? (
+                          <span className="rounded-full border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-500">Date limite passee</span>
+                        ) : (
+                          <button className="btn-primary px-3 py-2" onClick={() => startApply(row)}><FiSend /> Postuler</button>
+                        )}
+                        <button className={`ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-black uppercase tracking-wider transition-colors duration-200 ${accent.text} hover:bg-[#fff7f8]`} onClick={() => setDetailTarget(row)}>
+                          Details <FiChevronRight />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          {meta && meta.pages > 1 && (
+            <div className="panel flex flex-col gap-3 px-4 py-3 text-sm font-semibold text-[#7a6670] sm:flex-row sm:items-center sm:justify-between">
+              <span>Page {meta.page} sur {meta.pages} · {meta.total} resultat(s)</span>
+              <div className="flex gap-2">
+                <button className="btn-secondary px-3 py-1.5" disabled={meta.page <= 1} onClick={() => setPage(meta.page - 1)}>
+                  <FiChevronLeft /> Precedent
+                </button>
+                <button className="btn-secondary px-3 py-1.5" disabled={meta.page >= meta.pages} onClick={() => setPage(meta.page + 1)}>
+                  Suivant <FiChevronRight />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="panel px-4 py-16 text-center">
+          <div className="mx-auto max-w-sm">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#fff7f8] text-2xl text-[#d9a9b2] ring-8 ring-[#fff7f8]/60">
+              <FiInbox />
+            </span>
+            <p className="mt-4 font-bold text-[#2e2430]">Aucune offre trouvee</p>
+            <p className="mt-1 text-sm text-[#7a6670]">Aucun resultat pour cette recherche. Essayez d'autres mots-cles.</p>
+          </div>
+        </div>
+      )}
+
+      {detailTarget && (
+        <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={() => setDetailTarget(null)}>
+          <div className="modal-card panel max-h-[90vh] w-full max-w-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 border-b border-[#ead7da] bg-gradient-to-r from-[#fff7f8] to-[#fdf1f3] px-5 py-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#fff7f8] to-[#f8e1e5] text-[#8f4a56] shadow-inner ring-1 ring-[#ead7da]/70">
+                  <FiBriefcase className="text-xl" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-wide text-[#8f4a56]">Detail de l'offre</p>
+                  <h2 className="mt-0.5 truncate text-lg font-black text-[#2e2430]">{detailTarget.titre}</h2>
+                </div>
+              </div>
+              <button className="btn-secondary shrink-0 px-2.5 py-2" onClick={() => setDetailTarget(null)} aria-label="Fermer"><FiX /></button>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-5">
+              <div className="flex flex-wrap items-center gap-2">
+                {isExpired(detailTarget) ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-600">
+                    <FiClock /> Date limite passee
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Postes ouverts aux candidatures
+                  </span>
+                )}
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-[#f1e2e5] bg-[#fff7f8]/60 p-3">
+                  <p className="label">Localisation</p>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#2e2430]"><FiMapPin /> {detailTarget.localisation || 'Non precisee'}</p>
+                </div>
+                <div className="rounded-lg border border-[#f1e2e5] bg-[#fff7f8]/60 p-3">
+                  <p className="label">Salaire</p>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#2e2430]"><FiDollarSign /> {detailTarget.salaire || 'A negocier'}</p>
+                </div>
+                <div className="rounded-lg border border-[#f1e2e5] bg-[#fff7f8]/60 p-3">
+                  <p className="label">Date limite</p>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#2e2430]"><FiCalendar /> {formatDate(detailTarget.date_limite)}</p>
+                </div>
+                {detailTarget.date_creation && (
+                  <div className="rounded-lg border border-[#f1e2e5] bg-[#fff7f8]/60 p-3">
+                    <p className="label">Publiee le</p>
+                    <p className="mt-1.5 text-sm font-semibold text-[#2e2430]">{formatDate(detailTarget.date_creation)}</p>
+                  </div>
+                )}
+              </div>
+              <div className="mt-5">
+                <p className="label">Description</p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[#4b3a42]">{detailTarget.description}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap justify-end gap-2 border-t border-[#ead7da] bg-[#fff7f8]/60 px-5 py-4">
+              <button className="btn-secondary" onClick={() => setDetailTarget(null)}>Fermer</button>
+              {isAdmin ? (
+                <>
+                  <button className="btn-secondary" onClick={() => startEdit(detailTarget)}><FiEdit2 /> Modifier</button>
+                  <button className="btn-danger" onClick={() => startDelete(detailTarget)}><FiTrash2 /> Supprimer</button>
+                </>
+              ) : isExpired(detailTarget) ? null : (
+                <button className="btn-primary" onClick={() => startApply(detailTarget)}><FiSend /> Postuler</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {formOpen && (
         <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm">

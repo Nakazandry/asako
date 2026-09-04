@@ -1,6 +1,6 @@
 import { FiAlertTriangle, FiX } from 'react-icons/fi';
 
-export default function ConfirmModal({ open, title, message, onCancel, onConfirm, loading }) {
+export default function ConfirmModal({ open, title, message, onCancel, onConfirm, loading, cancelLabel = 'Annuler', confirmLabel = 'Confirmer' }) {
   if (!open) return null;
   return (
     <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={onCancel}>
@@ -24,9 +24,9 @@ export default function ConfirmModal({ open, title, message, onCancel, onConfirm
             </button>
           </div>
           <div className="mt-6 flex justify-end gap-2">
-            <button className="btn-secondary" onClick={onCancel}>Annuler</button>
+            <button className="btn-secondary" onClick={onCancel}>{cancelLabel}</button>
             <button className="btn-danger" onClick={onConfirm} disabled={loading}>
-              Confirmer
+              {confirmLabel}
             </button>
           </div>
         </div>

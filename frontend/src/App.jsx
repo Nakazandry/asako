@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import Offres from './pages/Offres.jsx';
 import Candidatures from './pages/Candidatures.jsx';
 import Entretiens from './pages/Entretiens.jsx';
+import Notifications from './pages/Notifications.jsx';
 import Profil from './pages/Profil.jsx';
 import MonEspace from './pages/MonEspace.jsx';
 import Parametres from './pages/Parametres.jsx';
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/offres" element={<Offres />} />
         <Route path="/candidatures" element={<Protected role="admin"><Candidatures /></Protected>} />
         <Route path="/entretiens" element={<Entretiens />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/profil" element={<Profil />} />
         <Route path="/parametres" element={<Parametres />} />
         <Route path="/parametre" element={<Parametres />} />

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FiCalendar, FiClock, FiEdit2, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiEdit2, FiPlus, FiXCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -21,7 +21,7 @@ export default function Entretiens() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(empty);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -54,28 +54,28 @@ export default function Entretiens() {
     }
   };
 
-  const remove = async () => {
+  const cancelInterview = async () => {
     try {
-      await api.delete(`/entretiens/${deleteTarget.id}`);
-      toast.success('Entretien supprime');
-      setDeleteTarget(null);
+      await api.delete(`/entretiens/${cancelTarget.id}`);
+      toast.success('Entretien annule');
+      setCancelTarget(null);
       load();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Suppression impossible');
+      toast.error(error.response?.data?.message || 'Annulation impossible');
     }
   };
 
   const columns = useMemo(() => [
     { key: 'candidat', header: 'Candidat', render: (row) => <div><p className="font-semibold text-[#2e2430]">{row.prenom} {row.nom}</p><p className="text-xs text-[#7a6670]">{row.offre_titre}</p></div> },
-    { key: 'date_entretien', header: 'Date', render: (row) => <span className="inline-flex items-center gap-2"><FiClock className="text-[#8f4a56]" />{formatDate(row.date_entretien)} {row.heure_entretien || ''}</span> },
+    { key: 'date_entretien', header: 'Date', render: (row) => <span className="inline-flex items-center gap-2"><FiClock className="text-[#8f4a56]" />{formatDate(row.date_entretien)} {row.heure_entretien ? row.heure_entretien.slice(0, 5) : ''}</span> },
     { key: 'type_entretien', header: 'Type', render: (row) => row.type_entretien },
     { key: 'lieu', header: 'Lieu', render: (row) => row.lieu || '-' },
     { key: 'resultat', header: 'Resultat', render: (row) => row.resultat || '-' },
     { key: 'commentaire', header: 'Commentaire', render: (row) => <span className="line-clamp-2 max-w-xs">{row.commentaire || '-'}</span> },
     { key: 'actions', header: 'Actions', render: (row) => isAdmin ? (
-      <div className="flex gap-2">
-        <button className="btn-secondary px-3 py-2" onClick={() => { setEditing(row); setForm({ ...row, date_entretien: row.date_entretien?.slice(0, 10) || '' }); setFormOpen(true); }}><FiEdit2 /></button>
-        <button className="btn-secondary px-3 py-2 text-rose-600" onClick={() => setDeleteTarget(row)}><FiTrash2 /></button>
+      <div className="flex flex-wrap gap-2">
+        <button className="btn-secondary whitespace-nowrap px-3 py-2" onClick={() => { setEditing(row); setForm({ ...row, date_entretien: row.date_entretien?.slice(0, 10) || '', heure_entretien: row.heure_entretien ? row.heure_entretien.slice(0, 5) : '' }); setFormOpen(true); }}><FiEdit2 /> Modifier</button>
+        <button className="btn-secondary whitespace-nowrap px-3 py-2 text-rose-600" onClick={() => setCancelTarget(row)} title="Annuler l'entretien et prevenir le candidat"><FiXCircle /> Annuler</button>
       </div>
     ) : '-' },
   ], [isAdmin]);
@@ -124,7 +124,7 @@ export default function Entretiens() {
           </form>
         </div>
       )}
-      <ConfirmModal open={Boolean(deleteTarget)} title="Supprimer cet entretien ?" message="Cette action est definitive." onCancel={() => setDeleteTarget(null)} onConfirm={remove} />
+      <ConfirmModal open={Boolean(cancelTarget)} title="Annuler cet entretien ?" message="Le candidat sera informe de l'annulation par une notification." onCancel={() => setCancelTarget(null)} onConfirm={cancelInterview} cancelLabel="Retour" confirmLabel="Oui, annuler" />
     </div>
   );
 }
