@@ -20,6 +20,7 @@ import { languageOptions, usePreferences } from '../context/PreferencesContext.j
 import { formatDate } from '../utils/format.js';
 import PageHero from '../components/PageHero.jsx';
 import UserAvatar from '../components/UserAvatar.jsx';
+import CompetencesSection from '../components/CompetencesSection.jsx';
 
 function InfoCard({ icon: Icon, label, value, helper }) {
   return (
@@ -282,6 +283,9 @@ export default function Profil() {
           )}
         </section>
       </div>
+
+      {/* Competences: reservees aux candidats */}
+      {user?.role === 'candidat' && <CompetencesSection />}
     </div>
   );
 }

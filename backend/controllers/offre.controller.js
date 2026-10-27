@@ -22,12 +22,27 @@ const getOffre = async (req, res, next) => {
   }
 };
 
+const buildValues = (body, file) => {
+  const values = {
+    titre: body.titre,
+    description: body.description,
+    localisation: body.localisation,
+    salaire: body.salaire,
+    date_limite: body.date_limite,
+  };
+  if (file) {
+    values.photo_data = file.buffer;
+    values.photo_type = file.mimetype;
+  }
+  return values;
+};
+
 const createOffre = async (req, res, next) => {
   try {
     if (isPast(req.body.date_limite)) {
       return res.status(400).json({ message: 'La date limite est deja passee' });
     }
-    const offre = await Offre.create(req.body);
+    const offre = await Offre.create(buildValues(req.body, req.file));
     res.status(201).json(offre);
   } catch (error) {
     next(error);
@@ -45,7 +60,32 @@ const updateOffre = async (req, res, next) => {
     ) {
       return res.status(400).json({ message: 'La date limite est deja passee' });
     }
-    const offre = await Offre.update(req.params.id, req.body);
+    const offre = await Offre.update(req.params.id, buildValues(req.body, req.file));
+    res.json(offre);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getPhoto = async (req, res, next) => {
+  try {
+    const photo = await Offre.getPhoto(req.params.id);
+    if (!photo || !photo.photo_data) {
+      return res.status(404).json({ message: 'Photo introuvable' });
+    }
+    res.setHeader('Content-Type', photo.photo_type || 'application/octet-stream');
+    res.setHeader('Content-Length', photo.photo_data.length);
+    res.setHeader('Cache-Control', 'private, max-age=0, must-revalidate');
+    res.send(photo.photo_data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removePhoto = async (req, res, next) => {
+  try {
+    const offre = await Offre.removePhoto(req.params.id);
+    if (!offre) return res.status(404).json({ message: 'Offre introuvable' });
     res.json(offre);
   } catch (error) {
     next(error);
@@ -61,4 +101,4 @@ const deleteOffre = async (req, res, next) => {
   }
 };
 
-module.exports = { listOffres, getOffre, createOffre, updateOffre, deleteOffre };
+module.exports = { listOffres, getOffre, createOffre, updateOffre, getPhoto, removePhoto, deleteOffre };

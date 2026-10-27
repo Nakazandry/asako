@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { FiBriefcase, FiCalendar, FiChevronLeft, FiChevronRight, FiClock, FiDollarSign, FiEdit2, FiInbox, FiMapPin, FiPlus, FiSearch, FiSend, FiTrash2, FiX } from 'react-icons/fi';
+import { FiBriefcase, FiCalendar, FiChevronLeft, FiChevronRight, FiClock, FiDollarSign, FiEdit2, FiInbox, FiMapPin, FiPlus, FiSearch, FiSend, FiTrash2, FiUpload, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import api from '../services/api';
+import api, { apiUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import Loader from '../components/Loader.jsx';
 import ConfirmModal from '../components/ConfirmModal.jsx';
@@ -40,6 +40,17 @@ export default function Offres() {
   const [applyTarget, setApplyTarget] = useState(null);
   const [detailTarget, setDetailTarget] = useState(null);
   const [application, setApplication] = useState({ cv: null, lettre_motivation: '' });
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [photoVersion, setPhotoVersion] = useState(0);
+
+  const photoSrc = (row) => (row?.has_photo ? `${apiUrl(`/offres/${row.id}/photo`)}?v=${photoVersion}` : '');
+
+  const resetPhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoFile(null);
+    setPhotoPreview('');
+  };
 
   const load = async () => {
     setLoading(true);
@@ -56,16 +67,57 @@ export default function Offres() {
 
   const saveOffer = async (event) => {
     event.preventDefault();
+    const formData = new FormData();
+    formData.append('titre', offerForm.titre || '');
+    formData.append('description', offerForm.description || '');
+    formData.append('localisation', offerForm.localisation || '');
+    formData.append('salaire', offerForm.salaire || '');
+    formData.append('date_limite', offerForm.date_limite || '');
+    if (photoFile) formData.append('photo', photoFile);
     try {
-      if (editing) await api.put(`/offres/${editing.id}`, offerForm);
-      else await api.post('/offres', offerForm);
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      if (editing) await api.put(`/offres/${editing.id}`, formData, config);
+      else await api.post('/offres', formData, config);
       toast.success(editing ? 'Offre modifiee' : 'Offre ajoutee');
       setFormOpen(false);
       setEditing(null);
       setOfferForm(emptyOffer);
+      resetPhoto();
+      setPhotoVersion((v) => v + 1);
       load();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation impossible');
+    }
+  };
+
+  const onPhotoChange = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez choisir une image (JPEG, PNG, WebP ou GIF)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image trop lourde (5 Mo maximum)');
+      return;
+    }
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const removePhoto = async () => {
+    if (!editing) return;
+    try {
+      await api.delete(`/offres/${editing.id}/photo`);
+      toast.success('Photo supprimee');
+      setEditing((prev) => (prev ? { ...prev, has_photo: false } : prev));
+      resetPhoto();
+      setPhotoVersion((v) => v + 1);
+      load();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Suppression impossible');
     }
   };
 
@@ -100,6 +152,7 @@ export default function Offres() {
     setDetailTarget(null);
     setEditing(row);
     setOfferForm({ ...row, date_limite: row.date_limite?.slice(0, 10) || '' });
+    resetPhoto();
     setFormOpen(true);
   };
 
@@ -124,7 +177,7 @@ export default function Offres() {
           { label: 'Offres affichees', value: rows.length },
           { label: 'Page', value: meta?.page || 1 },
         ]}
-        actions={isAdmin && <button className="btn-primary bg-white text-[#8f4a56] hover:bg-[#fff7f8]" onClick={() => { setEditing(null); setOfferForm(emptyOffer); setFormOpen(true); }}><FiPlus /> Ajouter</button>}
+        actions={isAdmin && <button className="btn-primary bg-white text-[#8f4a56] hover:bg-[#fff7f8]" onClick={() => { resetPhoto(); setEditing(null); setOfferForm(emptyOffer); setFormOpen(true); }}><FiPlus /> Ajouter</button>}
       />
       <form className="panel flex flex-col gap-3 p-4 sm:flex-row" onSubmit={(e) => { e.preventDefault(); setPage(1); load(); }}>
         <div className="relative flex-1">
@@ -149,25 +202,46 @@ export default function Offres() {
                   className="panel panel-hover group relative flex cursor-pointer flex-col overflow-hidden transition-all duration-200 hover:border-[#dcc2c8] active:scale-[0.99]"
                 >
                   <span className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent.bar} opacity-90`} />
-                  <div className="flex flex-1 flex-col p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${accent.tile} shadow-inner ring-1 ring-white/60 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105`}>
-                        <FiBriefcase className="text-xl" />
-                      </span>
+                  {row.has_photo && (
+                    <div className="relative w-full overflow-hidden bg-[#fff7f8]">
+                      <img
+                        src={photoSrc(row)}
+                        alt={row.titre}
+                        className="block h-auto max-h-64 w-full object-cover object-center"
+                        onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                      />
                       {expired ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-rose-600">
+                        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/95 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-rose-600">
                           <FiClock className="text-xs" /> Expiree
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-700">
-                          <span className="relative flex h-1.5 w-1.5">
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          </span>
-                          Ouverte
+                        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white/95 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Ouverte
                         </span>
                       )}
                     </div>
+                  )}
+                  <div className="flex flex-1 flex-col p-5">
+                    {!row.has_photo && (
+                      <div className="flex items-start justify-between gap-3">
+                        <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${accent.tile} shadow-inner ring-1 ring-white/60 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105`}>
+                          <FiBriefcase className="text-xl" />
+                        </span>
+                        {expired ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-rose-600">
+                            <FiClock className="text-xs" /> Expiree
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-700">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            </span>
+                            Ouverte
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <h3 className="mt-4 text-lg font-black leading-snug text-[#2e2430] transition-colors duration-200 group-hover:text-[#8f4a56]">{row.titre}</h3>
                     <p className="mt-1.5 flex items-center gap-1.5 text-sm text-[#7a6670]">
                       <FiMapPin className={`shrink-0 ${accent.text}`} /> {row.localisation || 'Localisation non precisee'}
@@ -244,6 +318,16 @@ export default function Offres() {
               </div>
               <button className="btn-secondary shrink-0 px-2.5 py-2" onClick={() => setDetailTarget(null)} aria-label="Fermer"><FiX /></button>
             </div>
+            {detailTarget.has_photo && (
+              <div className="w-full overflow-hidden bg-[#fff7f8]">
+                <img
+                  src={photoSrc(detailTarget)}
+                  alt={detailTarget.titre}
+                  className="block h-auto max-h-80 w-full object-cover object-center"
+                  onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                />
+              </div>
+            )}
             <div className="max-h-[60vh] overflow-y-auto p-5">
               <div className="flex flex-wrap items-center gap-2">
                 {isExpired(detailTarget) ? (
@@ -319,10 +403,40 @@ export default function Offres() {
                 <span className="label">Description</span>
                 <textarea className="input mt-1 min-h-32" required value={offerForm.description || ''} onChange={(e) => setOfferForm({ ...offerForm, description: e.target.value })} />
               </label>
+              <div className="sm:col-span-2">
+                <span className="label">Photo de l'offre</span>
+                <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-start">
+                  {(photoPreview || editing?.has_photo) && (
+                    <img
+                      src={photoPreview || photoSrc(editing)}
+                      alt="Apercu de l'offre"
+                      className="block max-h-40 w-auto rounded-lg border border-[#ead7da] object-contain object-center"
+                      onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                    />
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <label className="btn-secondary cursor-pointer">
+                      <FiUpload /> {photoPreview ? 'Changer la photo' : (editing?.has_photo ? 'Remplacer la photo' : 'Choisir une photo')}
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={onPhotoChange} />
+                    </label>
+                    {editing?.has_photo && !photoFile && (
+                      <button type="button" className="btn-secondary text-rose-600" onClick={removePhoto}>
+                        <FiTrash2 /> Retirer la photo
+                      </button>
+                    )}
+                    {photoFile && (
+                      <button type="button" className="btn-secondary" onClick={resetPhoto}>
+                        <FiX /> Annuler la selection
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-[#7a6670]">Formats acceptes : JPEG, PNG, WebP ou GIF · 5 Mo maximum.</p>
+              </div>
             </div>
             </div>
             <div className="flex justify-end gap-2 border-t border-[#ead7da] bg-[#fff7f8]/60 px-5 py-4">
-              <button type="button" className="btn-secondary" onClick={() => setFormOpen(false)}>Annuler</button>
+              <button type="button" className="btn-secondary" onClick={() => { resetPhoto(); setFormOpen(false); }}>Annuler</button>
               <button className="btn-primary">Enregistrer</button>
             </div>
           </form>

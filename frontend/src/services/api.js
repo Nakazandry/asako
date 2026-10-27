@@ -62,6 +62,14 @@ export const fileUrl = (path) => {
   return `${serverUrl}${path}`;
 };
 
+// URL absolue vers une route de l'API (garde le prefixe /api).
+// A utiliser pour les routes servies par l'API (ex: /offres/:id/photo).
+export const apiUrl = (path) => {
+  if (!path) return "#";
+  if (path.startsWith("http")) return path;
+  return api.getUri({ url: path });
+};
+
 export const voirCv = async (candidatureId) => {
   try {
     const response = await api.get(`/candidatures/${candidatureId}/cv`, {
