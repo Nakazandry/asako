@@ -1,10 +1,9 @@
 const Entretien = require('../models/entretien.model');
 const Candidature = require('../models/candidature.model');
+const emailService = require('../services/email.service');
 const { getPagination, paginated } = require('../utils/pagination');
-const { isoDay } = require('../utils/dates');
+const { isoDay, formatFrDate } = require('../utils/dates');
 const { createNotification } = require('../utils/notify');
-
-const frenchMonths = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
 
 // Convertit une valeur date/heure en comparaison fiable (JJ-MM-AAAA local / HH:MM)
 const comparable = (value) => {
@@ -14,14 +13,6 @@ const comparable = (value) => {
   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
   if (/^\d{2}:\d{2}/.test(str)) return str.slice(0, 5);
   return str;
-};
-
-// Date (pg renvoie un Date a minuit local) -> "1 decembre 2026" sans decalage UTC
-const formatFrDate = (value) => {
-  const day = isoDay(value);
-  if (!day) return '';
-  const [year, month, date] = day.split('-').map(Number);
-  return `${date} ${frenchMonths[month - 1]} ${year}`;
 };
 
 const listEntretiens = async (req, res, next) => {
@@ -60,6 +51,7 @@ const createEntretien = async (req, res, next) => {
         `Un entretien a ete programme pour votre candidature a l'offre "${candidature.offre_titre}" le ${day} a ${heure || 'l\'heure indiquee'}.`,
         'ENTRETIEN'
       ).catch(() => {});
+      emailService.sendEntretienPlanifie({ candidature, entretien }).catch(() => {});
     }
 
     res.status(201).json(entretien);
@@ -103,6 +95,16 @@ const updateEntretien = async (req, res, next) => {
 
         const message = `Votre entretien pour l'offre "${candidature.offre_titre}" a ete ${rescheduled ? 'reprogramme' : 'modifie'} : ${details.join(', ')}.`;
         createNotification(candidature.utilisateur_id, title, message, 'ENTRETIEN').catch(() => {});
+
+        const updatedDay = formatFrDate(entretien.date_entretien);
+        const changements = [];
+        if (changed('date_entretien')) changements.push(`Date : ${updatedDay || 'à convenir'}`);
+        if (changed('heure_entretien')) changements.push(`Heure : ${heure || 'à convenir'}`);
+        if (changed('type_entretien')) changements.push(`Type : ${type || 'non précisé'}`);
+        if (changed('lieu')) changements.push(`Lieu : ${lieu || 'non précisé'}`);
+        emailService
+          .sendEntretienModifie({ candidature, entretien, reprogramme: rescheduled, changements })
+          .catch(() => {});
       }
     }
 
@@ -128,6 +130,7 @@ const deleteEntretien = async (req, res, next) => {
         `Votre entretien pour l'offre "${candidature.offre_titre}"${day ? ` du ${day}` : ''} a ete annule.`,
         'ENTRETIEN'
       ).catch(() => {});
+      emailService.sendEntretienAnnule({ candidature, entretien: existing }).catch(() => {});
     }
 
     res.status(204).send();

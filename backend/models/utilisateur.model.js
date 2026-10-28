@@ -23,6 +23,13 @@ class Utilisateur {
     return rows[0];
   }
 
+  static async listAdmins() {
+    const { rows } = await pool.query(
+      "SELECT id, nom, prenom, email FROM utilisateurs WHERE role = 'admin' AND email IS NOT NULL AND email <> ''"
+    );
+    return rows;
+  }
+
   static async list({ search = '', role = '', limit, offset }) {
     const params = [];
     const where = [];

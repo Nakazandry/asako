@@ -1,5 +1,7 @@
 const Candidature = require('../models/candidature.model');
 const Offre = require('../models/offre.model');
+const Utilisateur = require('../models/utilisateur.model');
+const emailService = require('../services/email.service');
 const { getPagination, paginated } = require('../utils/pagination');
 const { isPast } = require('../utils/dates');
 const { createNotification, notifyAdmins } = require('../utils/notify');
@@ -70,6 +72,18 @@ const createCandidature = async (req, res, next) => {
       `Le candidat ${req.user.prenom} ${req.user.nom} a postule a l'offre "${offre.titre}".`,
       'NOUVELLE_CANDIDATURE'
     ).catch(() => {});
+
+    const candidat = {
+      id: req.user.id,
+      prenom: req.user.prenom,
+      nom: req.user.nom,
+      email: req.user.email,
+    };
+    Utilisateur.listAdmins()
+      .catch(() => [])
+      .then((admins) => emailService.notifyCandidatureCreated({ candidature, candidat, offre, admins }))
+      .catch(() => {});
+
     res.status(201).json(candidature);
   } catch (error) {
     next(error);
@@ -113,6 +127,10 @@ const updateStatut = async (req, res, next) => {
     const { statut } = req.body;
     if (!statuses.includes(statut)) return res.status(400).json({ message: 'Statut invalide' });
     const normalized = statut === 'Accepte' ? 'Accepté' : statut === 'Refuse' ? 'Refusé' : statut;
+
+    const existing = await Candidature.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: 'Candidature introuvable' });
+
     const candidature = await Candidature.updateStatus(req.params.id, normalized);
     if (!candidature) return res.status(404).json({ message: 'Candidature introuvable' });
 
@@ -130,6 +148,12 @@ const updateStatut = async (req, res, next) => {
         `Votre candidature pour l'offre "${full.offre_titre}" ${statusCopy}.`,
         'CANDIDATURE'
       ).catch(() => {});
+
+      if (existing.statut !== normalized) {
+        emailService
+          .sendChangementStatut({ candidature: full, statut: normalized, ancienStatut: existing.statut })
+          .catch(() => {});
+      }
     }
 
     res.json(candidature);
