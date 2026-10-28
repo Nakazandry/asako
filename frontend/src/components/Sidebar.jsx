@@ -118,7 +118,7 @@ export default function Sidebar({ open, onClose }) {
             <img src={sidebarImage} alt="" className="h-32 w-full object-cover object-center opacity-80 transition duration-500 hover:scale-105 hover:opacity-100" />
             <div className="p-3">
               <p className="text-[11px] font-black uppercase tracking-wider text-[#eec4c9]/70">ASAKO</p>
-              <p className="mt-1 text-sm font-semibold leading-5 text-[#f8e1e5]">Plateforme RH moderne et organisee.</p>
+              <p className="mt-1 text-sm font-semibold leading-5 text-[#f8e1e5]">Plateforme RH</p>
             </div>
           </div>
         </div>
