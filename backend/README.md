@@ -10,6 +10,22 @@ npm install
 npm run dev
 ```
 
+## Migrations base de donnees
+
+Les migrations SQL de `migrations/` s'appliquent avec:
+
+```bash
+npm run migrate
+```
+
+Le script utilise `DATABASE_URL`, execute chaque migration dans une transaction
+et enregistre les fichiers appliques dans la table `schema_migrations`. Il est
+sans danger de le relancer.
+
+Sur Render, definir `npm run migrate` comme **Pre-Deploy Command** du service
+backend (ou l'executer une fois depuis le Shell) pour que le schema soit a jour
+avant le demarrage de l'API.
+
 Variables importantes pour Render (Environment du service backend):
 
 - `DATABASE_URL` (obligatoire, chaine Postgres/Neon avec `sslmode=require`)
