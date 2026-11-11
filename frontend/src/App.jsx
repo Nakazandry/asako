@@ -10,6 +10,7 @@ import Entretiens from './pages/Entretiens.jsx';
 import Notifications from './pages/Notifications.jsx';
 import Profil from './pages/Profil.jsx';
 import MonEspace from './pages/MonEspace.jsx';
+import InvitationEntretien from './pages/InvitationEntretien.jsx';
 import Parametres from './pages/Parametres.jsx';
 
 const Protected = ({ children, role }) => {
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/parametres" element={<Parametres />} />
         <Route path="/parametre" element={<Parametres />} />
         <Route path="/mon-espace" element={<Protected role="candidat"><MonEspace /></Protected>} />
+        <Route path="/invitations/:id" element={<Protected role="candidat"><InvitationEntretien /></Protected>} />
       </Route>
       <Route path="*" element={<Navigate to={home || '/login'} replace />} />
     </Routes>

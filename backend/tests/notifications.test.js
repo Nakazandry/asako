@@ -49,7 +49,16 @@ const createNext = () => {
 
 const createHarness = () => {
   const state = {
-    email: { created: [], statut: [], planifie: [], modifie: [], annule: [], notifyError: false },
+    email: {
+      created: [],
+      statut: [],
+      planifie: [],
+      modifie: [],
+      annule: [],
+      reponseCandidat: [],
+      reponseRecruteur: [],
+      notifyError: false,
+    },
     notify: { create: [], admins: [] },
     candidature: {
       createResult: null,
@@ -60,9 +69,13 @@ const createHarness = () => {
     },
     entretien: {
       findByIdResult: null,
+      findByIdQueue: [],
       createResult: null,
       updateResult: null,
       deleteCalls: 0,
+      reponseArgs: null,
+      reponseResult: null,
+      setReponseCalls: 0,
     },
     offre: { findByIdResult: null },
     admins: [],
@@ -99,7 +112,11 @@ const createHarness = () => {
   };
 
   const fakeEntretien = {
-    findById: async () => state.entretien.findByIdResult,
+    findById: async () => (
+      state.entretien.findByIdQueue.length
+        ? state.entretien.findByIdQueue.shift()
+        : state.entretien.findByIdResult
+    ),
     create: async (payload) => {
       state.entretien.createPayload = payload;
       return state.entretien.createResult;
@@ -107,6 +124,11 @@ const createHarness = () => {
     update: async (id, payload) => {
       state.entretien.updateArgs = { id, payload };
       return state.entretien.updateResult;
+    },
+    setReponseCandidat: async (id, reponse) => {
+      state.entretien.setReponseCalls += 1;
+      state.entretien.reponseArgs = { id, reponse };
+      return state.entretien.reponseResult;
     },
     delete: async () => {
       state.entretien.deleteCalls += 1;
@@ -141,6 +163,12 @@ const createHarness = () => {
     },
     sendEntretienAnnule: async (payload) => {
       state.email.annule.push(payload);
+    },
+    sendEntretienReponseCandidat: async (payload) => {
+      state.email.reponseCandidat.push(payload);
+    },
+    sendEntretienReponseRecruteur: async (payload) => {
+      state.email.reponseRecruteur.push(payload);
     },
   };
 
@@ -386,6 +414,10 @@ test('createEntretien notifie le candidat par e-mail apres enregistrement', asyn
     assert.equal(state.email.planifie.length, 1);
     assert.equal(state.email.planifie[0].entretien.id, 9);
     assert.equal(state.email.planifie[0].candidature.email, 'amina@example.com');
+    // La notification interne contient type, lieu et l'invitation a repondre.
+    assert.match(state.notify.create[0][2], /Visio/);
+    assert.match(state.notify.create[0][2], /Google Meet/);
+    assert.match(state.notify.create[0][2], /accepter ou refuser/);
   } finally {
     harness.cleanup();
   }
@@ -470,3 +502,317 @@ test('deleteEntretien envoie un e-mail d annulation apres suppression', async ()
     harness.cleanup();
   }
 });
+const entretienInvitation = {
+  id: 9,
+  candidature_id: 5,
+  utilisateur_id: 7,
+  date_entretien: '2099-12-01',
+  heure_entretien: '09:30:00',
+  type_entretien: 'Visio',
+  lieu: 'Google Meet',
+  commentaire: 'Prevoir un exemple de projet.',
+  resultat: 'En attente',
+  reponse_candidat: 'En attente',
+  date_reponse: null,
+  prenom: 'Amina',
+  nom: 'Diallo',
+  email: 'amina@example.com',
+  offre_titre: 'Developpeuse Full Stack',
+  offre_localisation: 'Dakar',
+};
+
+const entretienAccepte = {
+  ...entretienInvitation,
+  reponse_candidat: 'Accepté',
+  date_reponse: '2026-11-11T09:00:00.000Z',
+};
+
+const entretienRefuse = {
+  ...entretienInvitation,
+  reponse_candidat: 'Refusé',
+  date_reponse: '2026-11-11T09:05:00.000Z',
+};
+
+const candidatDemandeur = { id: 7, prenom: 'Amina', nom: 'Diallo', email: 'amina@example.com', role: 'candidat' };
+
+test('le candidat concerne accepte son invitation et informe le recruteur', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdQueue = [entretienInvitation, entretienAccepte];
+    state.entretien.reponseResult = entretienAccepte;
+    state.admins = [{ id: 1, prenom: 'Awa', nom: 'Ndiaye', email: 'awa@example.com' }];
+
+    const req = { params: { id: '9' }, body: { reponse: 'accepter' }, user: candidatDemandeur };
+    const res = createRes();
+    const next = createNext();
+
+    await harness.entretienController.repondreEntretien(req, res, next);
+    await flush();
+
+    assert.equal(next.calls.length, 0);
+    assert.equal(state.entretien.reponseArgs.id, 9);
+    assert.equal(state.entretien.reponseArgs.reponse, 'Accepté');
+    assert.equal(res.payload.reponse_candidat, 'Accepté');
+    // Le resultat de l'entretien reste reserve au recruteur.
+    assert.equal(res.payload.resultat, 'En attente');
+
+    assert.equal(state.notify.create.length, 1);
+    assert.equal(state.notify.create[0][0], 7);
+    assert.match(state.notify.create[0][1], /acceptee/);
+
+    assert.equal(state.notify.admins.length, 1);
+    assert.match(state.notify.admins[0][1], /Amina Diallo a accepte/);
+
+    assert.equal(state.email.reponseCandidat.length, 1);
+    assert.equal(state.email.reponseCandidat[0].candidature.email, 'amina@example.com');
+    assert.equal(state.email.reponseRecruteur.length, 1);
+    assert.equal(state.email.reponseRecruteur[0].recruteur.email, 'awa@example.com');
+    assert.equal(state.email.reponseRecruteur[0].entretien.reponse_candidat, 'Accepté');
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('le candidat concerne refuse son invitation et le recruteur est notifie', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdQueue = [entretienInvitation, entretienRefuse];
+    state.entretien.reponseResult = entretienRefuse;
+    state.admins = [{ id: 1, prenom: 'Awa', nom: 'Ndiaye', email: 'awa@example.com' }];
+
+    const req = { params: { id: '9' }, body: { reponse: 'refuser' }, user: candidatDemandeur };
+    const res = createRes();
+    const next = createNext();
+
+    await harness.entretienController.repondreEntretien(req, res, next);
+    await flush();
+
+    assert.equal(next.calls.length, 0);
+    assert.equal(state.entretien.reponseArgs.reponse, 'Refusé');
+    assert.equal(res.payload.reponse_candidat, 'Refusé');
+    assert.equal(state.notify.create.length, 1);
+    assert.match(state.notify.create[0][1], /refuse/);
+    assert.equal(state.notify.admins.length, 1);
+    assert.match(state.notify.admins[0][1], /Amina Diallo a refuse/);
+    assert.equal(state.email.reponseCandidat.length, 1);
+    assert.equal(state.email.reponseRecruteur.length, 1);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('un candidat ne peut pas repondre a l entretien d un autre candidat', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdResult = entretienInvitation;
+
+    const req = { params: { id: '9' }, body: { reponse: 'accepter' }, user: { id: 8, role: 'candidat' } };
+    const res = createRes();
+    const next = createNext();
+
+    await harness.entretienController.repondreEntretien(req, res, next);
+    await flush();
+
+    assert.equal(next.calls.length, 0);
+    assert.equal(res.statusCode, 403);
+    assert.equal(state.entretien.setReponseCalls, 0);
+    assert.equal(state.notify.create.length, 0);
+    assert.equal(state.notify.admins.length, 0);
+    assert.equal(state.email.reponseCandidat.length, 0);
+    assert.equal(state.email.reponseRecruteur.length, 0);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('repondreEntretien refuse une valeur de reponse invalide', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdResult = entretienInvitation;
+
+    const req = { params: { id: '9' }, body: { reponse: 'peut-etre' }, user: candidatDemandeur };
+    const res = createRes();
+    const next = createNext();
+
+    await harness.entretienController.repondreEntretien(req, res, next);
+    await flush();
+
+    assert.equal(next.calls.length, 0);
+    assert.equal(res.statusCode, 400);
+    assert.equal(state.entretien.setReponseCalls, 0);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+
+test('repondreEntretien bloque une double soumission sans renvoyer de notification', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdResult = entretienAccepte;
+    state.admins = [{ id: 1, prenom: 'Awa', nom: 'Ndiaye', email: 'awa@example.com' }];
+
+    const req = { params: { id: '9' }, body: { reponse: 'refuser' }, user: candidatDemandeur };
+    const res = createRes();
+    const next = createNext();
+
+    await harness.entretienController.repondreEntretien(req, res, next);
+    await flush();
+
+    assert.equal(next.calls.length, 0);
+    assert.equal(res.statusCode, 409);
+    assert.match(res.payload.message, /deja repondu/);
+    assert.equal(state.entretien.setReponseCalls, 0);
+    assert.equal(state.notify.create.length, 0);
+    assert.equal(state.notify.admins.length, 0);
+    assert.equal(state.email.reponseCandidat.length, 0);
+    assert.equal(state.email.reponseRecruteur.length, 0);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('une mise a jour concurrente (deja repondu en base) est refusee proprement', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdQueue = [entretienInvitation, entretienInvitation];
+    state.entretien.reponseResult = null;
+
+    const req = { params: { id: '9' }, body: { reponse: 'accepter' }, user: candidatDemandeur };
+    const res = createRes();
+    const next = createNext();
+
+    await harness.entretienController.repondreEntretien(req, res, next);
+    await flush();
+
+    assert.equal(next.calls.length, 0);
+    assert.equal(res.statusCode, 409);
+    assert.equal(state.entretien.setReponseCalls, 1);
+    assert.equal(state.notify.create.length, 0);
+    assert.equal(state.notify.admins.length, 0);
+    assert.equal(state.email.reponseCandidat.length, 0);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('repondreEntretien bloque une reponse apres le delai de l entretien', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdResult = {
+      ...entretienInvitation,
+      date_entretien: '2020-01-01',
+      heure_entretien: '09:00:00',
+    };
+
+    const req = { params: { id: '9' }, body: { reponse: 'accepter' }, user: candidatDemandeur };
+    const res = createRes();
+    const next = createNext();
+
+    await harness.entretienController.repondreEntretien(req, res, next);
+    await flush();
+
+    assert.equal(next.calls.length, 0);
+    assert.equal(res.statusCode, 409);
+    assert.match(res.payload.message, /delai de reponse est depasse/);
+    assert.equal(state.entretien.setReponseCalls, 0);
+    assert.equal(state.notify.create.length, 0);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('repondreEntretien renvoie 404 quand l entretien est annule (supprime)', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdResult = null;
+
+    const req = { params: { id: '9' }, body: { reponse: 'accepter' }, user: candidatDemandeur };
+    const res = createRes();
+    const next = createNext();
+
+    await harness.entretienController.repondreEntretien(req, res, next);
+    await flush();
+
+    assert.equal(next.calls.length, 0);
+    assert.equal(res.statusCode, 404);
+    assert.equal(state.entretien.setReponseCalls, 0);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('une seconde reponse sur le meme entretien ne cree aucune notification en double', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.admins = [{ id: 1, prenom: 'Awa', nom: 'Ndiaye', email: 'awa@example.com' }];
+    state.entretien.findByIdQueue = [entretienInvitation, entretienAccepte];
+    state.entretien.reponseResult = entretienAccepte;
+
+    const first = createRes();
+    await harness.entretienController.repondreEntretien(
+      { params: { id: '9' }, body: { reponse: 'accepter' }, user: candidatDemandeur },
+      first,
+      createNext()
+    );
+    await flush();
+
+    // Deuxieme tentative : l'entretien est desormais accepte.
+    state.entretien.findByIdResult = entretienAccepte;
+    state.entretien.reponseResult = entretienAccepte;
+    const second = createRes();
+    await harness.entretienController.repondreEntretien(
+      { params: { id: '9' }, body: { reponse: 'accepter' }, user: candidatDemandeur },
+      second,
+      createNext()
+    );
+    await flush();
+
+    assert.equal(first.statusCode, 200);
+    assert.equal(second.statusCode, 409);
+    assert.equal(state.notify.create.length, 1);
+    assert.equal(state.notify.admins.length, 1);
+    assert.equal(state.email.reponseCandidat.length, 1);
+    assert.equal(state.email.reponseRecruteur.length, 1);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test('getEntretien autorise le candidat concerne et le recruteur, refuse les autres', async () => {
+  const harness = createHarness();
+  try {
+    const { state } = harness;
+    state.entretien.findByIdResult = entretienInvitation;
+
+    const own = createRes();
+    await harness.entretienController.getEntretien({ params: { id: '9' }, user: candidatDemandeur }, own, createNext());
+    assert.equal(own.statusCode, 200);
+    assert.equal(own.payload.id, 9);
+
+    const admin = createRes();
+    await harness.entretienController.getEntretien({ params: { id: '9' }, user: { id: 1, role: 'admin' } }, admin, createNext());
+    assert.equal(admin.statusCode, 200);
+
+    const other = createRes();
+    await harness.entretienController.getEntretien({ params: { id: '9' }, user: { id: 8, role: 'candidat' } }, other, createNext());
+    assert.equal(other.statusCode, 403);
+
+    state.entretien.findByIdResult = null;
+    const missing = createRes();
+    await harness.entretienController.getEntretien({ params: { id: '99' }, user: { id: 1, role: 'admin' } }, missing, createNext());
+    assert.equal(missing.statusCode, 404);
+  } finally {
+    harness.cleanup();
+  }
+});
+

@@ -518,3 +518,107 @@ test('logEmailConfiguration ne journalise jamais la cle API', () => {
   assert.match(line, /cle RESEND=presente/);
   assert.doesNotMatch(line, /re_test_key/);
 });
+
+const candidatureAmina = {
+  id: 5,
+  prenom: 'Amina',
+  nom: 'Diallo',
+  email: 'amina@example.com',
+  offre_titre: 'Developpeuse Full Stack',
+  offre_localisation: 'Dakar',
+};
+
+const entretienAvecReponse = {
+  id: 9,
+  date_entretien: '2026-12-01',
+  heure_entretien: '09:30:00',
+  type_entretien: 'Visio',
+  lieu: 'Google Meet',
+  commentaire: 'Prevoir un exemple de projet.',
+  reponse_candidat: 'Accepté',
+  date_reponse: '2026-11-11T09:00:00.000Z',
+};
+
+test('l invitation contient les boutons accepter et refuser vers la page securisee', async () => {
+  const transport = mockTransport();
+  service._setTransportForTests(transport);
+
+  await service.sendEntretienPlanifie({
+    candidature: candidatureAmina,
+    entretien: {
+      id: 9,
+      date_entretien: '2026-12-01',
+      heure_entretien: '09:30:00',
+      type_entretien: 'Visio',
+      lieu: 'Google Meet',
+    },
+  });
+
+  const { payload } = transport.calls[0];
+  // Les boutons pointent vers la page de l'application (jamais vers l'API,
+  // donc aucune reponse n'est enregistree par une simple requete GET).
+  assert.match(payload.html, /https:\/\/asako\.example\.com\/invitations\/9\?reponse=accepter/);
+  assert.match(payload.html, /https:\/\/asako\.example\.com\/invitations\/9\?reponse=refuser/);
+  assert.match(payload.html, /Accepter l&#39;entretien/);
+  assert.match(payload.html, /Refuser l&#39;entretien/);
+  assert.doesNotMatch(payload.html, /\/api\/entretiens/);
+  assert.match(payload.text, /invitations\/9\?reponse=accepter/);
+  assert.match(payload.text, /invitations\/9\?reponse=refuser/);
+});
+
+test('la confirmation de reponse est envoyee au candidat avec le statut et la date', async () => {
+  const transport = mockTransport();
+  service._setTransportForTests(transport);
+
+  await service.sendEntretienReponseCandidat({
+    candidature: candidatureAmina,
+    entretien: entretienAvecReponse,
+  });
+
+  const { payload, options } = transport.calls[0];
+  assert.equal(payload.to, 'amina@example.com');
+  assert.match(payload.subject, /Votre réponse a été enregistrée/);
+  assert.match(payload.html, /Accepté/);
+  assert.match(payload.html, /1 décembre 2026/);
+  assert.match(payload.html, /11 novembre 2026/);
+  assert.match(payload.text, /Votre réponse : Accepté/);
+  assert.deepEqual(options, {
+    idempotencyKey: providerKey('entretien:9:reponse:Accepté:candidat'),
+  });
+});
+
+test('le recruteur recoit la reponse du candidat a son adresse reellement enregistree', async () => {
+  const transport = mockTransport();
+  service._setTransportForTests(transport);
+
+  await service.sendEntretienReponseRecruteur({
+    recruteur: { id: 1, prenom: 'Awa', nom: 'Ndiaye', email: 'awa@example.com' },
+    candidature: candidatureAmina,
+    entretien: { ...entretienAvecReponse, reponse_candidat: 'Refusé' },
+  });
+
+  const { payload, options } = transport.calls[0];
+  assert.equal(payload.to, 'awa@example.com');
+  assert.match(payload.subject, /Entretien refusé par Amina Diallo/);
+  assert.match(payload.html, /Amina Diallo/);
+  assert.match(payload.html, /amina@example\.com/);
+  assert.match(payload.html, /Refusé/);
+  assert.match(payload.text, /Réponse du candidat : Refusé/);
+  assert.deepEqual(options, {
+    idempotencyKey: providerKey('entretien:9:reponse:Refusé:recruteur:1'),
+  });
+});
+
+test('une reponse n est envoyee qu une seule fois au candidat', async () => {
+  const transport = mockTransport();
+  service._setTransportForTests(transport);
+  const payload = { candidature: candidatureAmina, entretien: entretienAvecReponse };
+
+  const first = await service.sendEntretienReponseCandidat(payload);
+  const second = await service.sendEntretienReponseCandidat(payload);
+
+  assert.equal(first.sent, true);
+  assert.deepEqual(second, { sent: false, reason: 'duplicate' });
+  assert.equal(transport.calls.length, 1);
+});
+

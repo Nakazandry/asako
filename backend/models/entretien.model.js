@@ -3,6 +3,7 @@ const pool = require('../config/db');
 const selectEntretien = `
   e.*,
   c.statut AS candidature_statut,
+  c.utilisateur_id,
   u.nom, u.prenom, u.email,
   o.titre AS offre_titre
 `;
@@ -85,6 +86,22 @@ class Entretien {
       params
     );
     return rows[0];
+  }
+
+  // Enregistre la reponse du candidat de facon atomique.
+  // La clause WHERE reponse_candidat = 'En attente' empeche toute double
+  // soumission (y compris deux requetes concurrentes) : la seconde ne
+  // modifie aucune ligne et renvoie null.
+  // Ne touche jamais a la colonne resultat, reservee au recruteur.
+  static async setReponseCandidat(id, reponse) {
+    const { rows } = await pool.query(
+      `UPDATE entretiens
+       SET reponse_candidat = $2, date_reponse = NOW()
+       WHERE id = $1 AND reponse_candidat = 'En attente'
+       RETURNING *`,
+      [id, reponse]
+    );
+    return rows[0] || null;
   }
 
   static async delete(id) {

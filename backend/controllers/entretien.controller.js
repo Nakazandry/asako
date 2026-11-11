@@ -1,9 +1,10 @@
 const Entretien = require('../models/entretien.model');
 const Candidature = require('../models/candidature.model');
+const Utilisateur = require('../models/utilisateur.model');
 const emailService = require('../services/email.service');
 const { getPagination, paginated } = require('../utils/pagination');
-const { isoDay, formatFrDate } = require('../utils/dates');
-const { createNotification } = require('../utils/notify');
+const { isoDay, formatFrDate, formatFrTime } = require('../utils/dates');
+const { createNotification, notifyAdmins } = require('../utils/notify');
 
 // Convertit une valeur date/heure en comparaison fiable (JJ-MM-AAAA local / HH:MM)
 const comparable = (value) => {
@@ -13,6 +14,31 @@ const comparable = (value) => {
   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
   if (/^\d{2}:\d{2}/.test(str)) return str.slice(0, 5);
   return str;
+};
+
+// Normalise la decision envoyee par le candidat vers les valeurs stockees.
+const normalizeReponse = (value) => {
+  const raw = String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+  if (['accepter', 'accepte', 'accepted', 'oui'].includes(raw)) return 'Accepté';
+  if (['refuser', 'refuse', 'refused', 'non'].includes(raw)) return 'Refusé';
+  return null;
+};
+
+// Le candidat peut repondre jusqu'au debut de l'entretien (date + heure).
+const responseDeadlinePassed = (entretien) => {
+  const day = isoDay(entretien && entretien.date_entretien);
+  if (!day) return false;
+  const heure = formatFrTime(entretien.heure_entretien) || '23:59';
+  const [year, month, date] = day.split('-').map(Number);
+  const [hours, minutes] = heure.split(':').map(Number);
+  if (!year || !month || !date) return false;
+  const deadline = new Date(year, month - 1, date, hours || 0, minutes || 0, 0, 0);
+  if (Number.isNaN(deadline.getTime())) return false;
+  return deadline.getTime() < Date.now();
 };
 
 const listEntretiens = async (req, res, next) => {
@@ -30,6 +56,9 @@ const getEntretien = async (req, res, next) => {
   try {
     const entretien = await Entretien.findById(req.params.id);
     if (!entretien) return res.status(404).json({ message: 'Entretien introuvable' });
+    if (req.user.role !== 'admin' && entretien.utilisateur_id !== req.user.id) {
+      return res.status(403).json({ message: 'Acces non autorise' });
+    }
     res.json(entretien);
   } catch (error) {
     next(error);
@@ -45,10 +74,12 @@ const createEntretien = async (req, res, next) => {
     if (candidature) {
       const day = formatFrDate(entretien.date_entretien);
       const heure = comparable(entretien.heure_entretien);
+      const type = comparable(entretien.type_entretien);
+      const lieu = comparable(entretien.lieu);
       createNotification(
         candidature.utilisateur_id,
-        'Nouvel entretien',
-        `Un entretien a ete programme pour votre candidature a l'offre "${candidature.offre_titre}" le ${day} a ${heure || 'l\'heure indiquee'}.`,
+        "Invitation a un entretien",
+        `Un entretien est propose pour votre candidature a l'offre "${candidature.offre_titre}" le ${day} a ${heure || 'l\'heure indiquee'}${type ? ` (${type})` : ''}${lieu ? ` - ${lieu}` : ''}. Ouvrez votre espace ou l'invitation recue par e-mail pour accepter ou refuser.`,
         'ENTRETIEN'
       ).catch(() => {});
       emailService.sendEntretienPlanifie({ candidature, entretien }).catch(() => {});
@@ -139,4 +170,90 @@ const deleteEntretien = async (req, res, next) => {
   }
 };
 
-module.exports = { listEntretiens, getEntretien, createEntretien, updateEntretien, deleteEntretien };
+// Reponse du candidat a une invitation (accepter / refuser).
+// Route reservee au role candidat : le recruteur ne peut pas repondre a sa place.
+const repondreEntretien = async (req, res, next) => {
+  try {
+    const reponse = normalizeReponse(req.body && req.body.reponse);
+    if (!reponse) {
+      return res.status(400).json({ message: 'Reponse invalide : valeurs attendues "accepter" ou "refuser"' });
+    }
+
+    const existing = await Entretien.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: 'Entretien introuvable' });
+
+    // Seul le candidat concerne par l'entretien peut repondre.
+    if (existing.utilisateur_id !== req.user.id) {
+      return res.status(403).json({ message: 'Acces non autorise' });
+    }
+
+    if (existing.reponse_candidat && existing.reponse_candidat !== 'En attente') {
+      return res.status(409).json({
+        message: `Vous avez deja repondu a cette invitation (${existing.reponse_candidat}).`,
+        reponse_candidat: existing.reponse_candidat,
+        date_reponse: existing.date_reponse,
+      });
+    }
+
+    if (responseDeadlinePassed(existing)) {
+      return res.status(409).json({ message: "Le delai de reponse est depasse : l'entretien a deja commence." });
+    }
+
+    // Mise a jour conditionnelle : protege aussi contre deux soumissions simultanees.
+    const updated = await Entretien.setReponseCandidat(existing.id, reponse);
+    if (!updated) {
+      return res.status(409).json({ message: 'Cette invitation a deja recu une reponse.' });
+    }
+
+    const entretien = (await Entretien.findById(existing.id)) || { ...existing, ...updated };
+    const candidature = {
+      id: entretien.candidature_id,
+      utilisateur_id: entretien.utilisateur_id,
+      prenom: entretien.prenom,
+      nom: entretien.nom,
+      email: entretien.email,
+      offre_titre: entretien.offre_titre,
+    };
+    const day = formatFrDate(entretien.date_entretien);
+    const heure = formatFrTime(entretien.heure_entretien);
+    const when = [day, heure ? `a ${heure}` : ''].filter(Boolean).join(' ');
+    const decision = reponse === 'Accepté' ? 'accepte' : 'refuse';
+    const candidatNom = [entretien.prenom, entretien.nom].filter(Boolean).join(' ') || 'Un candidat';
+
+    // Confirmation interne pour le candidat.
+    createNotification(
+      entretien.utilisateur_id,
+      reponse === 'Accepté' ? 'Invitation acceptee' : 'Invitation refusee',
+      `Vous avez ${decision} l'entretien${when ? ` du ${when}` : ''} pour l'offre "${entretien.offre_titre}". Votre reponse a bien ete enregistree.`,
+      'ENTRETIEN'
+    ).catch(() => {});
+
+    // Information du recruteur : une seule notification car la reponse n'est
+    // enregistrable qu'une fois (mise a jour atomique ci-dessus).
+    notifyAdmins(
+      reponse === 'Accepté' ? 'Entretien accepte par le candidat' : 'Entretien refuse par le candidat',
+      `${candidatNom} a ${decision} l'invitation a l'entretien${when ? ` du ${when}` : ''} pour l'offre "${entretien.offre_titre}".`,
+      'ENTRETIEN'
+    ).catch(() => {});
+
+    emailService.sendEntretienReponseCandidat({ candidature, entretien }).catch(() => {});
+    Utilisateur.listAdmins()
+      .then((admins) => Promise.all(
+        (admins || []).map((recruteur) => emailService.sendEntretienReponseRecruteur({ recruteur, candidature, entretien }))
+      ))
+      .catch(() => {});
+
+    res.json(entretien);
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  listEntretiens,
+  getEntretien,
+  createEntretien,
+  updateEntretien,
+  deleteEntretien,
+  repondreEntretien,
+};

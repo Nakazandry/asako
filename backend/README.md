@@ -150,6 +150,50 @@ Aucune variable d'e-mail ni cle secrete ne doit etre configuree dans Vercel.
 
 Ne jamais committer la vraie valeur de `RESEND_API_KEY`.
 
+### Reponse du candidat a une invitation d'entretien
+
+La table `entretiens` porte deux informations distinctes :
+
+| Colonne | Role | Valeurs |
+| --- | --- | --- |
+| `reponse_candidat` | Decision du candidat | `En attente` (defaut), `Accepté`, `Refusé` |
+| `date_reponse` | Horodatage de la decision | `NULL` tant que le candidat n'a pas repondu |
+| `resultat` | Evaluation de l'entretien par le recruteur | libre, jamais modifie par la reponse du candidat |
+
+Migration associee : `migrations/003_add_entretien_reponse_candidat.sql`
+(idempotente ; les lignes existantes conservent `En attente`).
+
+Routes :
+
+- `GET /api/entretiens` : liste (candidat = ses entretiens, admin = tous).
+- `GET /api/entretiens/:id` : detail, reserve au candidat concerne ou a un admin.
+- `PATCH /api/entretiens/:id/reponse` : corps `{ "reponse": "accepter" }` ou
+  `{ "reponse": "refuser" }`, reserve au role `candidat`.
+
+Regles appliquees par le backend :
+
+- seul le candidat proprietaire de l'entretien peut repondre (sinon `403`) ;
+- entretien introuvable ou annule (supprime) : `404` ;
+- reponse deja enregistree ou mise a jour concurrente : `409` (mise a jour
+  atomique `WHERE reponse_candidat = 'En attente'`, donc aucune double
+  soumission possible) ;
+- reponse apres le debut de l'entretien (date + heure) : `409` ;
+- la reponse ne modifie jamais `resultat`.
+
+E-mails (Resend) :
+
+- l'invitation de planification contient les boutons « Accepter l'entretien »
+  et « Refuser l'entretien » ; ils ouvrent la page securisee
+  `FRONTEND_URL/invitations/:id`, qui exige une authentification et une
+  validation explicite (aucune mutation par simple requete `GET`) ;
+- apres la reponse, le candidat recoit une confirmation et chaque
+  administrateur recoit un e-mail sur l'adresse reellement enregistree dans
+  son compte.
+
+Notifications internes : invitation a la planification, confirmation pour le
+candidat, information des recruteurs apres la reponse. Une reponse ne pouvant
+etre enregistree qu'une fois, aucune notification n'est dupliquee.
+
 Tests:
 
 ```bash

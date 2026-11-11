@@ -464,6 +464,67 @@ const sendEntretienAnnule = ({ candidature = {}, entretien = {} }) => {
   }
 };
 
+// Confirmation envoyee au candidat apres l'enregistrement de sa decision.
+const sendEntretienReponseCandidat = ({ candidature = {}, entretien = {} }) => {
+  try {
+    const data = {
+      candidat: { prenom: candidature.prenom, nom: candidature.nom },
+      offre: {
+        titre: candidature.offre_titre,
+        localisation: candidature.offre_localisation,
+      },
+      entretien,
+      frontendUrl: getFrontendUrl(),
+    };
+    const { subject, html, text } = templates.entretienReponseCandidat(data);
+    return sendEmail({
+      to: candidature.email,
+      subject,
+      html,
+      text,
+      idempotencyKey: entretien.id
+        ? `entretien:${entretien.id}:reponse:${entretien.reponse_candidat}:candidat`
+        : null,
+    });
+  } catch (error) {
+    logError('confirmation reponse candidat', error);
+    return Promise.resolve({ sent: false, reason: 'template_error' });
+  }
+};
+
+// Information du recruteur (adresse reellement enregistree du compte admin).
+const sendEntretienReponseRecruteur = ({ recruteur = {}, candidature = {}, entretien = {} }) => {
+  try {
+    const data = {
+      recruteur: { prenom: recruteur.prenom, nom: recruteur.nom },
+      candidat: {
+        prenom: candidature.prenom,
+        nom: candidature.nom,
+        email: candidature.email,
+      },
+      offre: {
+        titre: candidature.offre_titre,
+        localisation: candidature.offre_localisation,
+      },
+      entretien,
+      frontendUrl: getFrontendUrl(),
+    };
+    const { subject, html, text } = templates.entretienReponseRecruteur(data);
+    return sendEmail({
+      to: recruteur.email,
+      subject,
+      html,
+      text,
+      idempotencyKey: entretien.id && recruteur.id
+        ? `entretien:${entretien.id}:reponse:${entretien.reponse_candidat}:recruteur:${recruteur.id}`
+        : null,
+    });
+  } catch (error) {
+    logError('notification reponse recruteur', error);
+    return Promise.resolve({ sent: false, reason: 'template_error' });
+  }
+};
+
 const _resetForTests = () => {
   resendClient = null;
   resendClientApiKey = null;
@@ -490,6 +551,8 @@ module.exports = {
   sendEntretienPlanifie,
   sendEntretienModifie,
   sendEntretienAnnule,
+  sendEntretienReponseCandidat,
+  sendEntretienReponseRecruteur,
   getEmailConfig,
   logEmailConfiguration,
   _resetForTests,

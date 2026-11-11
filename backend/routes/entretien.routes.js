@@ -9,5 +9,7 @@ router.get('/:id', controller.getEntretien);
 router.post('/', authorize('admin'), controller.createEntretien);
 router.put('/:id', authorize('admin'), controller.updateEntretien);
 router.delete('/:id', authorize('admin'), controller.deleteEntretien);
+// Reponse du candidat : jamais de mutation via GET, uniquement un PATCH authentifie.
+router.patch('/:id/reponse', authorize('candidat'), controller.repondreEntretien);
 
 module.exports = router;

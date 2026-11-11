@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import DataTable from '../components/DataTable.jsx';
 import ConfirmModal from '../components/ConfirmModal.jsx';
 import PageHero from '../components/PageHero.jsx';
-import { formatDate } from '../utils/format.js';
+import { formatDate, statusClass, statusLabel } from '../utils/format.js';
 
 const empty = { candidature_id: '', date_entretien: '', heure_entretien: '', type_entretien: 'Presentiel', lieu: '', commentaire: '', resultat: '' };
 
@@ -70,6 +70,19 @@ export default function Entretiens() {
     { key: 'date_entretien', header: 'Date', render: (row) => <span className="inline-flex items-center gap-2"><FiClock className="text-[#8f4a56]" />{formatDate(row.date_entretien)} {row.heure_entretien ? row.heure_entretien.slice(0, 5) : ''}</span> },
     { key: 'type_entretien', header: 'Type', render: (row) => row.type_entretien },
     { key: 'lieu', header: 'Lieu', render: (row) => row.lieu || '-' },
+    {
+      key: 'reponse_candidat',
+      header: 'Reponse du candidat',
+      render: (row) => {
+        const reponse = row.reponse_candidat || 'En attente';
+        return (
+          <div className="flex flex-col gap-1">
+            <span className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-bold ${statusClass(reponse)}`}>{statusLabel(reponse)}</span>
+            {row.date_reponse && <span className="text-xs text-[#7a6670]">{formatDate(row.date_reponse)}</span>}
+          </div>
+        );
+      },
+    },
     { key: 'resultat', header: 'Resultat', render: (row) => row.resultat || '-' },
     { key: 'commentaire', header: 'Commentaire', render: (row) => <span className="line-clamp-2 max-w-xs">{row.commentaire || '-'}</span> },
     { key: 'actions', header: 'Actions', render: (row) => isAdmin ? (
