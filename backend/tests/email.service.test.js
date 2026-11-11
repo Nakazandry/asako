@@ -539,7 +539,7 @@ const entretienAvecReponse = {
   date_reponse: '2026-11-11T09:00:00.000Z',
 };
 
-test('l invitation contient les boutons accepter et refuser vers la page securisee', async () => {
+test('l invitation est informative et ne permet aucune reponse depuis l e-mail', async () => {
   const transport = mockTransport();
   service._setTransportForTests(transport);
 
@@ -555,15 +555,28 @@ test('l invitation contient les boutons accepter et refuser vers la page securis
   });
 
   const { payload } = transport.calls[0];
-  // Les boutons pointent vers la page de l'application (jamais vers l'API,
-  // donc aucune reponse n'est enregistree par une simple requete GET).
-  assert.match(payload.html, /https:\/\/asako\.example\.com\/invitations\/9\?reponse=accepter/);
-  assert.match(payload.html, /https:\/\/asako\.example\.com\/invitations\/9\?reponse=refuser/);
-  assert.match(payload.html, /Accepter l&#39;entretien/);
-  assert.match(payload.html, /Refuser l&#39;entretien/);
+  // Les details de l'entretien restent presents.
+  assert.match(payload.html, /1 décembre 2026/);
+  assert.match(payload.html, /09:30/);
+  assert.match(payload.html, /Visio/);
+  assert.match(payload.html, /Google Meet/);
+
+  // Un seul bouton : acceder a l'espace Asako (application).
+  assert.match(payload.html, /Accéder à mon espace Asako/);
+  assert.match(payload.html, /https:\/\/asako\.example\.com\/mon-espace/);
+  assert.equal((payload.html.match(/mon-espace/g) || []).length, 1);
+
+  // Aucun lien ni bouton permettant d'accepter ou refuser depuis l'e-mail.
+  assert.doesNotMatch(payload.html, /invitations\//);
+  assert.doesNotMatch(payload.html, /reponse=/);
+  assert.doesNotMatch(payload.html, /Accepter l&#39;entretien/);
+  assert.doesNotMatch(payload.html, /Refuser l&#39;entretien/);
   assert.doesNotMatch(payload.html, /\/api\/entretiens/);
-  assert.match(payload.text, /invitations\/9\?reponse=accepter/);
-  assert.match(payload.text, /invitations\/9\?reponse=refuser/);
+
+  assert.match(payload.text, /Accéder à mon espace Asako : https:\/\/asako\.example\.com\/mon-espace/);
+  assert.doesNotMatch(payload.text, /reponse=/);
+  assert.doesNotMatch(payload.text, /invitations\//);
+  assert.match(payload.text, /uniquement depuis l'application/);
 });
 
 test('la confirmation de reponse est envoyee au candidat avec le statut et la date', async () => {

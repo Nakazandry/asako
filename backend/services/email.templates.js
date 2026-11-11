@@ -60,41 +60,14 @@ const button = (url, label) => {
     </table>`;
 };
 
-// Groupe de boutons (ex: Accepter / Refuser une invitation d'entretien).
-// Les liens pointent toujours vers une page de l'application : aucune decision
-// n'est enregistree par une simple ouverture de lien (pas de mutation en GET).
-const buttonGroup = (buttons = []) => {
-  const cells = buttons
-    .filter((item) => item && item.url && item.label)
-    .map((item) => {
-      const outline = item.variant === 'outline';
-      const styles = outline
-        ? `background-color:#ffffff;color:${BRAND};border:1px solid ${BORDER};`
-        : `background-color:${BRAND};color:#ffffff;border:1px solid ${BRAND};`;
-      return `
-        <td style="padding:0 8px 8px 0;">
-          <a href="${escapeHtml(item.url)}" target="_blank" style="display:inline-block;padding:13px 22px;font-family:${FONT};font-size:14px;font-weight:700;line-height:1;text-decoration:none;border-radius:10px;${styles}">${escapeHtml(item.label)}</a>
-        </td>`;
-    })
-    .join('');
-  if (!cells) return '';
-  return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 6px;">
-      <tr>${cells}</tr>
-    </table>`;
-};
-
 const changeList = (changes = []) => {
   const items = changes.filter(Boolean).map((change) => `<li style="margin:6px 0;">${escapeHtml(change)}</li>`);
   if (!items.length) return '';
   return `<ul style="margin:16px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:#334155;">${items.join('')}</ul>`;
 };
 
-const layout = ({ title, preheader, heading, content, cta, ctaLabel, ctaButtons, footerNote, frontendUrl }) => {
+const layout = ({ title, preheader, heading, content, cta, ctaLabel, footerNote, frontendUrl }) => {
   const safeTitle = escapeHtml(title);
-  const actions = Array.isArray(ctaButtons) && ctaButtons.length
-    ? buttonGroup(ctaButtons)
-    : button(cta, ctaLabel);
   return `<!doctype html>
 <html lang="fr">
 <head>
@@ -126,7 +99,7 @@ const layout = ({ title, preheader, heading, content, cta, ctaLabel, ctaButtons,
             <td class="email-padding" style="padding:34px 32px 30px;">
               <h1 class="email-heading" style="margin:0 0 20px;font-family:${FONT};font-size:25px;line-height:1.3;font-weight:800;color:${BRAND};">${escapeHtml(heading)}</h1>
               ${content}
-              ${actions}
+              ${button(cta, ctaLabel)}
             </td>
           </tr>
           <tr>
@@ -295,16 +268,14 @@ const entretienPlanifie = ({ candidat = {}, offre = {}, entretien = {}, frontend
   const subject = `Entretien planifié : ${offreTitre}`;
   const day = formatFrDate(entretien.date_entretien);
   const heure = formatFrTime(entretien.heure_entretien);
-  // Page securisee de l'application : la decision n'est enregistree qu'apres
-  // authentification et validation explicite du candidat (jamais en GET).
-  const invitationUrl = entretien.id
-    ? `${frontendUrl}/invitations/${entretien.id}`
-    : `${frontendUrl}/mon-espace`;
+  // L'e-mail est purement informatif : aucune decision ne peut etre prise ici.
+  // Le candidat se connecte a son espace ASAKO pour accepter ou refuser.
+  const espaceUrl = `${frontendUrl}/mon-espace`;
   const content = [
     paragraph(`Bonjour ${escapeHtml(prenom || 'à vous')},`),
     paragraph(`Un entretien a été planifié dans le cadre de votre candidature à l'offre <strong style="color:${BRAND};">${escapeHtml(offreTitre)}</strong>.`),
     detailsTable(interviewRows(offre, entretien, candidat)),
-    paragraph('Merci de confirmer votre disponibilité en acceptant ou en refusant cette invitation. Pour votre sécurité, aucune réponse n\'est enregistrée avant votre validation dans votre espace ASAKO.'),
+    paragraph('Pour accepter ou refuser cette invitation, connectez-vous à votre espace ASAKO et ouvrez la rubrique « Invitations à des entretiens ». Votre réponse est enregistrée uniquement depuis l\'application.'),
   ].join('');
   const text = [
     `Bonjour ${prenom || ''},`,
@@ -316,24 +287,21 @@ const entretienPlanifie = ({ candidat = {}, offre = {}, entretien = {}, frontend
     entretien.lieu ? `Lieu : ${entretien.lieu}` : '',
     entretien.commentaire ? `Commentaire : ${entretien.commentaire}` : '',
     '',
-    'Merci de confirmer votre disponibilité en acceptant ou en refusant cette invitation.',
-    'Aucune réponse n\'est enregistrée avant votre validation dans votre espace ASAKO.',
+    'Pour accepter ou refuser cette invitation, connectez-vous à votre espace ASAKO',
+    'et ouvrez la rubrique "Invitations à des entretiens".',
+    'Votre réponse est enregistrée uniquement depuis l\'application.',
     '',
-    `Accepter l'entretien : ${invitationUrl}?reponse=accepter`,
-    `Refuser l'entretien : ${invitationUrl}?reponse=refuser`,
-    `Voir l'invitation : ${invitationUrl}`,
+    `Accéder à mon espace Asako : ${espaceUrl}`,
   ].filter(Boolean).join('\n');
   return {
     subject,
     html: layout({
       title: subject,
-      preheader: `Entretien pour ${offreTitre}${day ? ` le ${day}` : ''}${heure ? ` à ${heure}` : ''}. Confirmez votre présence.`,
+      preheader: `Entretien pour ${offreTitre}${day ? ` le ${day}` : ''}${heure ? ` à ${heure}` : ''}. Retrouvez les détails dans votre espace ASAKO.`,
       heading: 'Votre entretien est planifié',
       content,
-      ctaButtons: [
-        { url: `${invitationUrl}?reponse=accepter`, label: "Accepter l'entretien" },
-        { url: `${invitationUrl}?reponse=refuser`, label: "Refuser l'entretien", variant: 'outline' },
-      ],
+      cta: espaceUrl,
+      ctaLabel: 'Accéder à mon espace Asako',
       footerNote: 'Vous recevez cet e-mail car vous avez postulé via ASAKO.',
       frontendUrl,
     }),

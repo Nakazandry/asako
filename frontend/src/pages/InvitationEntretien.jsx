@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiCalendar, FiCheckCircle, FiClock, FiMapPin, FiMessageSquare, FiXCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -10,14 +10,12 @@ import { formatDate, statusClass, statusLabel } from '../utils/format.js';
 
 const EN_ATTENTE = 'En attente';
 
-// Page atteinte depuis les boutons de l'e-mail d'invitation.
-// Aucune reponse n'est enregistree tant que le candidat n'a pas valide
-// explicitement : le parametre ?reponse= sert seulement de raccourci visuel.
+// Page de l'application (authentifiee) permettant de repondre a une invitation.
+// L'e-mail d'invitation ne contient aucun lien de reponse : il renvoie seulement
+// vers l'espace candidat. Aucune decision n'est enregistree par un GET.
 export default function InvitationEntretien() {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const intent = searchParams.get('reponse');
   const [entretien, setEntretien] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -112,11 +110,7 @@ export default function InvitationEntretien() {
         {enAttente ? (
           <div className="mt-6 flex flex-col gap-3 border-t border-[#ead7da] pt-5 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-[#7a6670]">
-              {intent === 'refuser'
-                ? 'Vous avez choisi de refuser : confirmez votre decision ci-dessous.'
-                : intent === 'accepter'
-                  ? "Vous avez choisi d'accepter : confirmez votre decision ci-dessous."
-                  : 'Votre reponse sera enregistree uniquement apres votre confirmation.'}
+              Votre reponse sera enregistree uniquement apres votre confirmation.
             </p>
             <div className="flex flex-wrap gap-2">
               <button className="btn-primary" disabled={responding} onClick={() => repondre('accepter')}>

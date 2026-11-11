@@ -182,10 +182,11 @@ Regles appliquees par le backend :
 
 E-mails (Resend) :
 
-- l'invitation de planification contient les boutons « Accepter l'entretien »
-  et « Refuser l'entretien » ; ils ouvrent la page securisee
-  `FRONTEND_URL/invitations/:id`, qui exige une authentification et une
-  validation explicite (aucune mutation par simple requete `GET`) ;
+- l'invitation de planification est **purement informative** (date, heure, type,
+  lieu) et contient uniquement un bouton « Accéder à mon espace Asako » vers
+  `FRONTEND_URL/mon-espace` : aucun lien ni bouton ne permet d'accepter ou de
+  refuser depuis l'e-mail, et aucune mutation n'est declenchee par l'ouverture
+  d'un lien ;
 - apres la reponse, le candidat recoit une confirmation et chaque
   administrateur recoit un e-mail sur l'adresse reellement enregistree dans
   son compte.

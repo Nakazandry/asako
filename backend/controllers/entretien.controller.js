@@ -79,7 +79,7 @@ const createEntretien = async (req, res, next) => {
       createNotification(
         candidature.utilisateur_id,
         "Invitation a un entretien",
-        `Un entretien est propose pour votre candidature a l'offre "${candidature.offre_titre}" le ${day} a ${heure || 'l\'heure indiquee'}${type ? ` (${type})` : ''}${lieu ? ` - ${lieu}` : ''}. Ouvrez votre espace ou l'invitation recue par e-mail pour accepter ou refuser.`,
+        `Un entretien est propose pour votre candidature a l'offre "${candidature.offre_titre}" le ${day} a ${heure || 'l\'heure indiquee'}${type ? ` (${type})` : ''}${lieu ? ` - ${lieu}` : ''}. Connectez-vous a votre espace ASAKO, rubrique "Invitations a des entretiens", pour accepter ou refuser cette invitation.`,
         'ENTRETIEN'
       ).catch(() => {});
       emailService.sendEntretienPlanifie({ candidature, entretien }).catch(() => {});

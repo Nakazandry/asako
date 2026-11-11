@@ -67,15 +67,34 @@ test('l espace candidat affiche le statut et les actions accepter ou refuser', (
   assert.match(page, /ConfirmModal/);
 });
 
-test('la page de reponse issue de l e-mail est protegee et ne mute rien en GET', () => {
+test('l e-mail d invitation ne contient aucun lien de reponse', () => {
+  const templates = readBackend('services', 'email.templates.js');
+  const service = readBackend('services', 'email.service.js');
+
+  // Uniquement le bouton d'acces a l'espace de l'application.
+  assert.match(templates, /ctaLabel: 'Accéder à mon espace Asako'/);
+  assert.match(templates, /const espaceUrl = `\$\{frontendUrl\}\/mon-espace`/);
+  assert.doesNotMatch(templates, /reponse=accepter/);
+  assert.doesNotMatch(templates, /reponse=refuser/);
+  assert.doesNotMatch(templates, /invitations\//);
+  assert.doesNotMatch(templates, /ctaButtons/);
+
+  // Aucune route de reponse n'est appelee dans les e-mails.
+  assert.doesNotMatch(service, /fetch\(\s*['"`][^'"`]*\/entretiens/);
+});
+
+test('la page de reponse de l application est protegee et ne mute rien en GET', () => {
   const app = readFrontend('App.jsx');
   const page = readFrontend('pages', 'InvitationEntretien.jsx');
 
+  // Page reservee aux candidats authentifies.
   assert.match(app, /path="\/invitations\/:id"/);
   assert.match(app, /Protected role="candidat"><InvitationEntretien/);
   assert.match(page, /api\.patch\(`\/entretiens\/\$\{id\}\/reponse`/);
-  // La lecture de l'invitation se fait par GET, la decision uniquement par PATCH.
+  // La lecture se fait en GET, la decision uniquement en PATCH.
   assert.match(page, /api\.get\(`\/entretiens\/\$\{id\}`\)/);
+  // Plus aucun raccourci issu d'un lien e-mail.
+  assert.doesNotMatch(page, /useSearchParams/);
 });
 
 test('le tableau recruteur distingue la reponse du candidat du resultat', () => {
