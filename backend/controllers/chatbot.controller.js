@@ -132,6 +132,7 @@ const sendMessage = async (req, res, next) => {
       user: req.user,
       question,
       history: ConversationService.historyForModel(conversation),
+      conversationId: id,
     });
 
     const updated = await ConversationService.appendExchange(conversation, {

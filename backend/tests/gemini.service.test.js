@@ -7,6 +7,7 @@ const ENV_KEYS = [
   'GEMINI_API_KEY',
   'GEMINI_MODEL',
   'GEMINI_MAX_OUTPUT_TOKENS',
+  'GEMINI_THINKING_LEVEL',
   'AI_MAX_PROMPT_CHARS',
 ];
 const originalEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
@@ -38,6 +39,7 @@ test.beforeEach(() => {
   restoreEnv();
   delete process.env.GEMINI_MODEL;
   delete process.env.GEMINI_MAX_OUTPUT_TOKENS;
+  delete process.env.GEMINI_THINKING_LEVEL;
   delete process.env.AI_MAX_PROMPT_CHARS;
 });
 
@@ -72,10 +74,10 @@ test('une reponse valide est renvoyee avec le modele par defaut et des bornes de
   });
 
   assert.equal(result.text, 'Voici ma reponse');
-  assert.equal(result.model, 'gemini-2.5-flash');
+  assert.equal(result.model, 'gemini-3.6-flash');
 
   const params = fake.calls[0];
-  assert.equal(params.model, 'gemini-2.5-flash');
+  assert.equal(params.model, 'gemini-3.6-flash');
   assert.equal(params.config.systemInstruction, 'Tu es un assistant');
   assert.ok(params.config.maxOutputTokens <= 2048);
   assert.equal(params.contents.at(-1).role, 'user');
@@ -156,6 +158,50 @@ test('les erreurs du fournisseur sont mappees sans message technique brut', asyn
       }
     );
   }
+});
+
+test('Gemini 3 recoit un niveau de raisonnement borne, un modele 2.5 n en recoit pas', async () => {
+  process.env.GEMINI_API_KEY = 'cle_de_test';
+  const fake = fakeClient();
+  service._setClientForTests(fake.client);
+
+  await service.generate({ prompt: 'Bonjour' });
+  assert.deepEqual(fake.calls[0].config.thinkingConfig, { thinkingLevel: 'low' });
+
+  process.env.GEMINI_THINKING_LEVEL = 'high';
+  await service.generate({ prompt: 'Bonjour' });
+  assert.deepEqual(fake.calls[1].config.thinkingConfig, { thinkingLevel: 'high' });
+
+  // Une valeur inconnue retombe sur le niveau par defaut.
+  process.env.GEMINI_THINKING_LEVEL = 'turbo';
+  await service.generate({ prompt: 'Bonjour' });
+  assert.deepEqual(fake.calls[2].config.thinkingConfig, { thinkingLevel: 'low' });
+
+  // thinkingLevel n'existe pas sur Gemini 2.5 : ne pas l'envoyer evite un 400.
+  process.env.GEMINI_MODEL = 'gemini-2.5-flash';
+  await service.generate({ prompt: 'Bonjour' });
+  assert.equal('thinkingConfig' in fake.calls[3].config, false);
+});
+
+test('les jetons de raisonnement Gemini 3 ne sont jamais renvoyes comme reponse', async () => {
+  process.env.GEMINI_API_KEY = 'cle_de_test';
+  service._setClientForTests(
+    fakeClient(() => ({
+      candidates: [
+        {
+          content: {
+            parts: [
+              { text: 'je reflechis en interne', thought: true },
+              { text: 'Voici la reponse finale.' },
+            ],
+          },
+        },
+      ],
+    })).client
+  );
+
+  const result = await service.generate({ prompt: 'Bonjour' });
+  assert.equal(result.text, 'Voici la reponse finale.');
 });
 
 test('isConfigured reflete la presence de la cle', () => {

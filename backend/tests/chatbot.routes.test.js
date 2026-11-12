@@ -115,11 +115,18 @@ test('le controleur ne fait confiance qu au JWT pour le perimetre', () => {
   assert.match(controller, /AI_ERROR_STATUS/);
 });
 
-test('le service Gemini ne lit la cle que cote serveur et ne journalise rien', () => {
+test('le service Gemini ne lit la cle que cote serveur et ne journalise rien de sensible', () => {
   const gemini = read('services', 'gemini.service.js');
 
   assert.match(gemini, /process\.env\.GEMINI_API_KEY/);
-  assert.doesNotMatch(gemini, /console\.(log|info|warn|error)\(/);
+  // Un seul point de journalisation est autorise : le diagnostic de panne,
+  // dont le message fournisseur passe obligatoirement par sanitizeLogText.
+  assert.equal((gemini.match(/console\.(log|info|warn|error)\(/g) || []).length, 1);
+  assert.match(gemini, /console\.error\('\[gemini\] echec appel fournisseur', JSON\.stringify\(entry\)\)/);
+  assert.match(gemini, /providerMessage: sanitizeLogText\(/);
+  assert.doesNotMatch(gemini, /console\.\w+\([^)]*apiKey/);
+  assert.doesNotMatch(gemini, /console\.\w+\([^)]*question/);
+  assert.doesNotMatch(gemini, /console\.\w+\([^)]*prompt/);
   assert.match(gemini, /maxOutputTokens/);
 });
 
@@ -128,7 +135,8 @@ test('la cle Gemini reste hors du frontend et documentee dans .env.example', () 
 
   assert.match(envExample, /^GEMINI_API_KEY=$/m);
   assert.doesNotMatch(envExample, /VITE_GEMINI/i);
-  assert.match(envExample, /GEMINI_MODEL=gemini-2\.5-flash/);
+  assert.match(envExample, /GEMINI_MODEL=gemini-3\.6-flash/);
+  assert.match(envExample, /GEMINI_THINKING_LEVEL=low/);
   assert.match(envExample, /AI_CHAT_RATE_LIMIT_MAX=/);
 });
 

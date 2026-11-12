@@ -165,7 +165,7 @@ const buildContext = async (user) => {
   return buildCandidateContext(user);
 };
 
-const ask = async ({ user, question, history = [] }) => {
+const ask = async ({ user, question, history = [], conversationId = null }) => {
   const contexte = await buildContext(user);
   const instruction = SYSTEM_INSTRUCTIONS[user?.role] || SYSTEM_INSTRUCTIONS.candidat;
 
@@ -181,6 +181,8 @@ const ask = async ({ user, question, history = [] }) => {
     systemInstruction: instruction,
     prompt,
     history,
+    // Identifiant interne uniquement : sert a correler les logs, jamais journalise avec du contenu.
+    context: { conversationId },
   });
 
   return { answer: text };
