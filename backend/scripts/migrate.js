@@ -1,7 +1,14 @@
 const fs = require('fs');
 const path = require('path');
+const net = require('net');
 const { Client } = require('pg');
 require('dotenv').config();
+
+// Neon est distant : la resolution DNS renvoie plusieurs adresses. Le mode
+// "happy eyeballs" de Node abandonne chaque essai au bout de 250 ms, ce qui est
+// trop court sur une liaison lente et provoque un ETIMEDOUT alors que la base
+// repond. On desactive ce mode pour laisser l'essai TCP aboutir.
+net.setDefaultAutoSelectFamily(false);
 
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'migrations');
 const LOCK_ID = 748201;

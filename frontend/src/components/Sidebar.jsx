@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FiBell, FiBriefcase, FiCalendar, FiGrid, FiHome, FiSettings, FiUser, FiUsers, FiX } from 'react-icons/fi';
+import { FiBell, FiBriefcase, FiCalendar, FiCpu, FiGrid, FiHome, FiSettings, FiUser, FiUsers, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext.jsx';
 import { usePreferences } from '../context/PreferencesContext.jsx';
 import api from '../services/api';
 import logoImage from '../assets/images/asako-logo-ui.png';
 import sidebarImage from '../assets/images/sidebar-stationery.webp';
 
-export default function Sidebar({ open, onClose }) {
+export default function Sidebar({ open, onClose, onOpenChatbot }) {
   const { user } = useAuth();
   const { t } = usePreferences();
   const location = useLocation();
@@ -112,6 +112,29 @@ export default function Sidebar({ open, onClose }) {
               )}
             </NavLink>
           ))}
+
+          {/* Outils disponibles pour les deux roles (un seul composant de chat) */}
+          <div className="mt-3 border-t border-white/10 pt-3">
+            <p className="px-3 pb-2 pt-1 text-[11px] font-black uppercase tracking-widest text-[#eec4c9]/60">
+              {t('nav.tools')}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenChatbot?.();
+              }}
+              className="group relative flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm font-semibold text-[#f8e1e5]/90 transition-all duration-200 hover:translate-x-0.5 hover:bg-white/[0.06] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f7d9dd]/60"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/[0.07] transition-all duration-200 group-hover:scale-105 group-hover:bg-white/[0.12]">
+                <FiCpu className="text-lg" />
+              </span>
+              <span className="truncate">{t('nav.assistant')}</span>
+              <span className="ml-auto rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-200">
+                IA
+              </span>
+            </button>
+          </div>
         </nav>
         <div className="shrink-0 px-4 pb-5 pt-4 max-sm:hidden">
           <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.06] backdrop-blur-sm">

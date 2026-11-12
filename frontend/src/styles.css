@@ -194,6 +194,31 @@ input[type="file"]::file-selector-button:hover {
   border-radius: 0.5rem;
 }
 
+/* ---------- Assistant IA ---------- */
+
+/* Le panneau et les bulles gardent le vert d'ASAKO en mode sombre. */
+.theme-dark .chatbot-panel {
+  border-color: #2f4a3a;
+  background-color: #231b25;
+}
+
+.theme-dark .chatbot-panel .bg-\[\#f7fbf8\] {
+  background-color: #1c1620;
+}
+
+.theme-dark .chat-bubble-assistant {
+  border-color: #33513f;
+  background-color: #1f2b25;
+  color: #eaf6ee;
+}
+
+/* La regle globale `.theme-dark header` vise la Navbar : on conserve le vert
+   de marque sur l'en-tete de l'assistant. */
+.theme-dark .chatbot-panel header {
+  border-color: transparent;
+  background: linear-gradient(90deg, #047857, #059669, #10b981);
+}
+
 .theme-compact main {
   padding-top: 1rem;
   padding-bottom: 1rem;

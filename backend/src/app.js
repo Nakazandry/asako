@@ -11,6 +11,7 @@ const entretienRoutes = require('../routes/entretien.routes');
 const dashboardRoutes = require('../routes/dashboard.routes');
 const notificationRoutes = require('../routes/notification.routes');
 const competenceRoutes = require('../routes/competence.routes');
+const chatbotRoutes = require('../routes/chatbot.routes');
 const { notFound, errorHandler } = require('../middleware/error.middleware');
 
 const app = express();
@@ -64,6 +65,7 @@ app.use('/api/entretiens', entretienRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/competences', competenceRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
