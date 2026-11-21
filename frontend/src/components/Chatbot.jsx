@@ -309,8 +309,8 @@ export default function Chatbot({ open, onClose }) {
         {/* Historique */}
         {historyOpen ? (
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex items-center justify-between border-b border-[#ead7da] px-4 py-2.5">
-              <p className="text-xs font-black uppercase tracking-widest text-[#7a6670]">
+            <div className="flex items-center justify-between border-b border-[#dce9df] px-4 py-2.5">
+              <p className="text-xs font-black uppercase tracking-widest text-[#60756b]">
                 Mes conversations
               </p>
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
@@ -332,7 +332,7 @@ export default function Chatbot({ open, onClose }) {
                         className={`group flex items-start gap-2 rounded-xl border px-3 py-2.5 transition ${
                           conversation.id === activeId
                             ? 'border-emerald-200 bg-emerald-50/80'
-                            : 'border-transparent hover:border-[#ead7da] hover:bg-[#fff7f8]'
+                            : 'border-transparent hover:border-[#dce9df] hover:bg-[#f1f8f3]'
                         }`}
                       >
                         <button
@@ -343,10 +343,10 @@ export default function Chatbot({ open, onClose }) {
                             loadConversation(conversation.id);
                           }}
                         >
-                          <p className="truncate text-sm font-bold text-[#2e2430]">
+                          <p className="truncate text-sm font-bold text-[#17362b]">
                             {conversation.titre || 'Nouvelle conversation'}
                           </p>
-                          <p className="mt-0.5 text-[11px] font-semibold text-[#7a6670]">
+                          <p className="mt-0.5 text-[11px] font-semibold text-[#60756b]">
                             {formatWhen(conversation.date_modification || conversation.date_creation)}
                             {' · '}
                             {Array.isArray(conversation.messages) ? conversation.messages.length : 0} message(s)
@@ -370,8 +370,8 @@ export default function Chatbot({ open, onClose }) {
                   <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
                     <FiMessageSquare />
                   </span>
-                  <p className="mt-3 text-sm font-bold text-[#2e2430]">Aucune conversation</p>
-                  <p className="mt-1 text-xs text-[#7a6670]">
+                  <p className="mt-3 text-sm font-bold text-[#17362b]">Aucune conversation</p>
+                  <p className="mt-1 text-xs text-[#60756b]">
                     Posez une question pour démarrer votre première discussion.
                   </p>
                   <button
@@ -407,13 +407,13 @@ export default function Chatbot({ open, onClose }) {
                           <FiCpu className="text-sm" />
                         </span>
                         <div className="chat-bubble-assistant max-w-[85%] rounded-2xl rounded-tl-sm border border-emerald-100 bg-white px-3.5 py-2.5 shadow-sm">
-                          <p className="text-[13px] leading-6 text-[#2e2430]">
+                          <p className="text-[13px] leading-6 text-[#17362b]">
                             {welcome.greeting}
                           </p>
                         </div>
                       </div>
                       <div className="pl-10">
-                        <p className="text-[11px] font-black uppercase tracking-wide text-[#7a6670]">
+                        <p className="text-[11px] font-black uppercase tracking-wide text-[#60756b]">
                           Suggestions
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
@@ -442,7 +442,7 @@ export default function Chatbot({ open, onClose }) {
                           <FiCpu className="text-sm" />
                         </span>
                         <div className="chat-bubble-assistant max-w-[85%] rounded-2xl rounded-tl-sm border border-emerald-100 bg-white px-3.5 py-2.5 shadow-sm">
-                          <p className="whitespace-pre-wrap break-words text-[13px] leading-6 text-[#2e2430]">
+                          <p className="whitespace-pre-wrap break-words text-[13px] leading-6 text-[#17362b]">
                             {message.content}
                           </p>
                         </div>
@@ -467,7 +467,7 @@ export default function Chatbot({ open, onClose }) {
                         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500 [animation-delay:-0.3s]" />
                         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500 [animation-delay:-0.15s]" />
                         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500" />
-                        <span className="ml-1 text-[11px] font-semibold text-[#7a6670]">
+                        <span className="ml-1 text-[11px] font-semibold text-[#60756b]">
                           L’assistant rédige…
                         </span>
                       </div>
@@ -498,7 +498,7 @@ export default function Chatbot({ open, onClose }) {
             {/* Saisie */}
             <form
               onSubmit={send}
-              className="shrink-0 border-t border-[#ead7da] bg-white px-3 py-2.5"
+              className="shrink-0 border-t border-[#dce9df] bg-white px-3 py-2.5"
             >
               <div className="flex items-end gap-2">
                 <input
@@ -507,7 +507,7 @@ export default function Chatbot({ open, onClose }) {
                   onChange={(event) => setDraft(event.target.value.slice(0, MAX_MESSAGE))}
                   maxLength={MAX_MESSAGE}
                   placeholder="Posez votre question…"
-                  className="input h-11 flex-1 rounded-xl border-[#ead7da] px-3 text-[13px] focus:border-emerald-300 focus:ring-emerald-100"
+                  className="input h-11 flex-1 rounded-xl border-[#dce9df] px-3 text-[13px] focus:border-emerald-300 focus:ring-emerald-100"
                   aria-label="Message"
                   disabled={sending}
                 />
@@ -521,7 +521,7 @@ export default function Chatbot({ open, onClose }) {
                   <FiSend />
                 </button>
               </div>
-              <p className="mt-1.5 flex items-center justify-between text-[10px] font-semibold text-[#7a6670]">
+              <p className="mt-1.5 flex items-center justify-between text-[10px] font-semibold text-[#60756b]">
                 <span>Entrée pour envoyer</span>
                 <span>
                   {draft.length}/{MAX_MESSAGE}

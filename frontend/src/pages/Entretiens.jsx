@@ -66,8 +66,8 @@ export default function Entretiens() {
   };
 
   const columns = useMemo(() => [
-    { key: 'candidat', header: 'Candidat', render: (row) => <div><p className="font-semibold text-[#2e2430]">{row.prenom} {row.nom}</p><p className="text-xs text-[#7a6670]">{row.offre_titre}</p></div> },
-    { key: 'date_entretien', header: 'Date', render: (row) => <span className="inline-flex items-center gap-2"><FiClock className="text-[#8f4a56]" />{formatDate(row.date_entretien)} {row.heure_entretien ? row.heure_entretien.slice(0, 5) : ''}</span> },
+    { key: 'candidat', header: 'Candidat', render: (row) => <div><p className="font-semibold text-[#17362b]">{row.prenom} {row.nom}</p><p className="text-xs text-[#60756b]">{row.offre_titre}</p></div> },
+    { key: 'date_entretien', header: 'Date', render: (row) => <span className="inline-flex items-center gap-2"><FiClock className="text-[#147a54]" />{formatDate(row.date_entretien)} {row.heure_entretien ? row.heure_entretien.slice(0, 5) : ''}</span> },
     { key: 'type_entretien', header: 'Type', render: (row) => row.type_entretien },
     { key: 'lieu', header: 'Lieu', render: (row) => row.lieu || '-' },
     {
@@ -78,7 +78,7 @@ export default function Entretiens() {
         return (
           <div className="flex flex-col gap-1">
             <span className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-bold ${statusClass(reponse)}`}>{statusLabel(reponse)}</span>
-            {row.date_reponse && <span className="text-xs text-[#7a6670]">{formatDate(row.date_reponse)}</span>}
+            {row.date_reponse && <span className="text-xs text-[#60756b]">{formatDate(row.date_reponse)}</span>}
           </div>
         );
       },
@@ -104,15 +104,15 @@ export default function Entretiens() {
           { label: 'Entretiens affiches', value: rows.length },
           { label: 'Total', value: meta?.total || rows.length },
         ]}
-        actions={isAdmin && <button className="btn-primary bg-white text-[#8f4a56] hover:bg-[#fff7f8]" onClick={() => { setEditing(null); setForm(empty); setFormOpen(true); }}><FiPlus /> Programmer</button>}
+        actions={isAdmin && <button className="btn-primary" onClick={() => { setEditing(null); setForm(empty); setFormOpen(true); }}><FiPlus /> Programmer</button>}
       />
       <DataTable columns={columns} rows={rows} loading={loading} meta={meta} onPageChange={setPage} />
       {formOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm">
           <form className="panel max-h-[90vh] w-full max-w-2xl overflow-hidden shadow-2xl" onSubmit={save}>
-            <div className="border-b border-[#ead7da] px-5 py-4">
-              <p className="text-xs font-black uppercase tracking-wide text-[#8f4a56]">Entretien</p>
-              <h2 className="mt-1 text-lg font-black text-[#2e2430]">{editing ? 'Modifier un entretien' : 'Programmer un entretien'}</h2>
+            <div className="border-b border-[#dce9df] px-5 py-4">
+              <p className="text-xs font-black uppercase tracking-wide text-[#147a54]">Entretien</p>
+              <h2 className="mt-1 text-lg font-black text-[#17362b]">{editing ? 'Modifier un entretien' : 'Programmer un entretien'}</h2>
             </div>
             <div className="max-h-[68vh] overflow-y-auto p-5">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -133,7 +133,7 @@ export default function Entretiens() {
               <label className="block sm:col-span-2"><span className="label">Resultat</span><textarea className="input mt-1 min-h-20" value={form.resultat || ''} onChange={(e) => setForm({ ...form, resultat: e.target.value })} /></label>
             </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-[#ead7da] bg-[#fff7f8]/60 px-5 py-4"><button type="button" className="btn-secondary" onClick={() => setFormOpen(false)}>Annuler</button><button className="btn-primary">Enregistrer</button></div>
+            <div className="flex justify-end gap-2 border-t border-[#dce9df] bg-[#f1f8f3]/60 px-5 py-4"><button type="button" className="btn-secondary" onClick={() => setFormOpen(false)}>Annuler</button><button className="btn-primary">Enregistrer</button></div>
           </form>
         </div>
       )}

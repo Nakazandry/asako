@@ -19,7 +19,6 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { usePreferences } from '../context/PreferencesContext.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import UserAvatar from './UserAvatar.jsx';
-import logoImage from '../assets/images/asako-logo-ui.png';
 
 const pageRoutes = [
   { match: /^\/dashboard/, icon: FiGrid, key: 'nav.dashboard' },
@@ -79,10 +78,10 @@ export default function Navbar({ onToggle }) {
   }, [menuOpen]);
 
   const iconBtnClass =
-    'grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-[#fff7f8] hover:text-[#8f4a56] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#EEC4C9]';
+    'grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-[#f1f8f3] hover:text-[#147a54] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b7dec2]';
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[#ead7da]/80 bg-white/85 shadow-[0_1px_12px_rgba(46,36,48,0.04)] backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-[#dce9df]/80 bg-white/85 shadow-[0_1px_12px_rgba(46,36,48,0.04)] backdrop-blur-xl">
       <div className="flex h-16 items-center gap-2 px-4 lg:px-6">
         {/* Ouverture du menu (mobile) */}
         <button className={`${iconBtnClass} lg:hidden`} onClick={onToggle} aria-label={t('navbar.openMenu')}>
@@ -92,9 +91,9 @@ export default function Navbar({ onToggle }) {
         {/* Contexte de la page courante */}
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <Link to={home} className="shrink-0 lg:hidden" aria-label="ASAKO">
-            <img src={logoImage} alt="ASAKO" className="h-9 w-9 rounded-xl border border-[#f1e2e5] object-cover shadow-sm" />
+            <img src="/akdigital.jpeg" alt="AK Digital Service" className="h-9 w-16 object-contain" />
           </Link>
-          <span className="hidden h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#fff7f8] to-[#f8e1e5] text-[#8f4a56] shadow-inner ring-1 ring-[#ead7da]/60 lg:grid">
+          <span className="hidden h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#f1f8f3] to-[#e6f3e9] text-[#147a54] shadow-inner ring-1 ring-[#dce9df]/60 lg:grid">
             <PageIcon className="text-xl" />
           </span>
           <div className="min-w-0">
@@ -117,12 +116,12 @@ export default function Navbar({ onToggle }) {
 
           <NotificationBell />
 
-          <span className="mx-1 hidden h-6 w-px bg-[#f1e2e5] sm:block" />
+          <span className="mx-1 hidden h-6 w-px bg-[#e6eee8] sm:block" />
 
           {/* Menu utilisateur */}
           <div className="relative" ref={menuRef}>
             <button
-              className="flex items-center gap-2 rounded-full p-1 transition-all duration-200 hover:bg-[#fff7f8] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#EEC4C9]"
+              className="flex items-center gap-2 rounded-full p-1 transition-all duration-200 hover:bg-[#f1f8f3] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b7dec2]"
               onClick={() => setMenuOpen((current) => !current)}
               aria-expanded={menuOpen}
               aria-label="Menu utilisateur"
@@ -138,16 +137,16 @@ export default function Navbar({ onToggle }) {
             </button>
 
             {menuOpen && (
-              <div className="modal-card absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl border border-[#ead7da]/80 bg-white shadow-[0_20px_50px_-16px_rgba(46,36,48,0.35)]">
-                <div className="border-b border-[#f1e2e5]/80 bg-gradient-to-br from-[#fff7f8] to-[#fdf1f3] px-4 py-4">
+              <div className="modal-card absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl border border-[#dce9df]/80 bg-white shadow-[0_20px_50px_-16px_rgba(46,36,48,0.35)]">
+                <div className="border-b border-[#e6eee8]/80 bg-gradient-to-br from-[#f1f8f3] to-[#f7faf7] px-4 py-4">
                   <div className="flex items-center gap-3">
                     <UserAvatar user={user} size={46} className="rounded-full ring-2 ring-white shadow-sm" textClassName="text-base" />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-[#2e2430]">{fullName}</p>
-                      <p className="truncate text-xs font-semibold text-[#7a6670]">{user?.email}</p>
+                      <p className="truncate text-sm font-black text-[#17362b]">{fullName}</p>
+                      <p className="truncate text-xs font-semibold text-[#60756b]">{user?.email}</p>
                     </div>
                   </div>
-                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#EEC4C9]/60 bg-white/70 px-2.5 py-1 text-[11px] font-black capitalize text-[#8f4a56]">
+                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#b7dec2]/60 bg-white/70 px-2.5 py-1 text-[11px] font-black capitalize text-[#147a54]">
                     <span className={`h-1.5 w-1.5 rounded-full ${admin ? 'bg-emerald-500' : 'bg-sky-500'}`} />
                     {user?.role || '-'}
                   </span>
@@ -157,9 +156,9 @@ export default function Navbar({ onToggle }) {
                   <Link
                     to="/profil"
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[#4b3a42] transition-colors duration-150 hover:bg-[#fff7f8] hover:text-[#8f4a56]"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[#40574a] transition-colors duration-150 hover:bg-[#f1f8f3] hover:text-[#147a54]"
                   >
-                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#fff7f8] text-[#8f4a56]">
+                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#f1f8f3] text-[#147a54]">
                       <FiUser />
                     </span>
                     {t('nav.profile')}
@@ -167,16 +166,16 @@ export default function Navbar({ onToggle }) {
                   <Link
                     to="/parametres"
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[#4b3a42] transition-colors duration-150 hover:bg-[#fff7f8] hover:text-[#8f4a56]"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[#40574a] transition-colors duration-150 hover:bg-[#f1f8f3] hover:text-[#147a54]"
                   >
-                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#fff7f8] text-[#8f4a56]">
+                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#f1f8f3] text-[#147a54]">
                       <FiSettings />
                     </span>
                     {t('nav.settings')}
                   </Link>
                 </div>
 
-                <div className="border-t border-[#f1e2e5]/80 p-2">
+                <div className="border-t border-[#e6eee8]/80 p-2">
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-600 transition-colors duration-150 hover:bg-rose-50"

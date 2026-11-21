@@ -64,7 +64,7 @@ export default function UserAvatar({ user, size = 36, className = '', textClassN
   return (
     <span
       style={{ width: size, height: size }}
-      className={`grid shrink-0 select-none place-items-center bg-gradient-to-br from-[#f8e1e5] to-[#eec4c9] font-black text-[#8f4a56] ${textClassName} ${className}`}
+      className={`grid shrink-0 select-none place-items-center bg-gradient-to-br from-[#e6f3e9] to-[#b7dec2] font-black text-[#147a54] ${textClassName} ${className}`}
     >
       {initialsOf(user)}
     </span>

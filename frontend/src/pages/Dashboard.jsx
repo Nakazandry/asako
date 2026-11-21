@@ -5,7 +5,7 @@ import api from '../services/api';
 import Loader from '../components/Loader.jsx';
 import PageHero from '../components/PageHero.jsx';
 
-const statusColors = ['#8f4a56', '#16a34a', '#f59e0b', '#64748b', '#0f766e'];
+const statusColors = ['#147a54', '#55a875', '#d99b37', '#84938a', '#2f8a72'];
 
 const formatNumber = (value) => new Intl.NumberFormat('fr-FR').format(value || 0);
 
@@ -16,7 +16,7 @@ const percent = (value, total) => {
 
 function DashboardCard({ icon: Icon, label, value, helper, tone = 'rose' }) {
   const tones = {
-    rose: { tile: 'from-[#fff7f8] to-[#f8e1e5] text-[#8f4a56]', bar: 'from-[#eec4c9] to-[#8f4a56]' },
+    rose: { tile: 'from-[#f1f8f3] to-[#e6f3e9] text-[#147a54]', bar: 'from-[#b7dec2] to-[#147a54]' },
     green: { tile: 'from-emerald-50 to-emerald-100 text-emerald-700', bar: 'from-emerald-300 to-emerald-600' },
     amber: { tile: 'from-amber-50 to-amber-100 text-amber-700', bar: 'from-amber-300 to-amber-500' },
     slate: { tile: 'from-slate-100 to-slate-200 text-slate-700', bar: 'from-slate-300 to-slate-600' },
@@ -28,9 +28,9 @@ function DashboardCard({ icon: Icon, label, value, helper, tone = 'rose' }) {
       <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${selected.bar} opacity-70`} />
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#7a6670]">{label}</p>
-          <p className="mt-3 text-3xl font-black tracking-tight text-[#2e2430]" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(value)}</p>
-          <p className="mt-2 text-sm leading-5 text-[#7a6670]">{helper}</p>
+          <p className="text-sm font-semibold text-[#60756b]">{label}</p>
+          <p className="mt-3 text-3xl font-black tracking-tight text-[#17362b]" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(value)}</p>
+          <p className="mt-2 text-sm leading-5 text-[#60756b]">{helper}</p>
         </div>
         <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${selected.tile} shadow-inner ring-1 ring-white/60`}>
           <Icon className="text-xl" />
@@ -44,10 +44,10 @@ function ChartHeader({ title, description, badge }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h2 className="text-base font-black text-[#2e2430]">{title}</h2>
-        <p className="mt-1 text-sm leading-6 text-[#7a6670]">{description}</p>
+        <h2 className="text-base font-black text-[#17362b]">{title}</h2>
+        <p className="mt-1 text-sm leading-6 text-[#60756b]">{description}</p>
       </div>
-      {badge && <span className="w-fit rounded-full border border-[#ead7da] bg-[#fff7f8] px-3 py-1 text-xs font-bold text-[#8f4a56]">{badge}</span>}
+      {badge && <span className="w-fit rounded-full border border-[#dce9df] bg-[#f1f8f3] px-3 py-1 text-xs font-bold text-[#147a54]">{badge}</span>}
     </div>
   );
 }
@@ -57,9 +57,9 @@ function CustomTooltip({ active, payload, label }) {
   const title = label || payload[0].name || payload[0].payload?.name;
 
   return (
-    <div className="rounded-md border border-[#ead7da] bg-white px-3 py-2 text-sm shadow-lg">
-      <p className="font-bold text-[#2e2430]">{title}</p>
-      <p className="mt-1 text-[#7a6670]">{formatNumber(payload[0].value)} dossier(s)</p>
+    <div className="rounded-md border border-[#dce9df] bg-white px-3 py-2 text-sm shadow-lg">
+      <p className="font-bold text-[#17362b]">{title}</p>
+      <p className="mt-1 text-[#60756b]">{formatNumber(payload[0].value)} dossier(s)</p>
     </div>
   );
 }
@@ -110,38 +110,38 @@ export default function Dashboard() {
       </section>
 
       <div className="grid gap-4 xl:grid-cols-12">
-        <section className="panel p-5 xl:col-span-8">
+        <section className="panel min-w-0 p-5 xl:col-span-8">
           <ChartHeader
             title="Evolution des candidatures"
             description="Lecture mensuelle des dossiers recus pour suivre le rythme du pipeline."
             badge={monthDelta >= 0 ? `+${monthDelta} ce mois` : `${monthDelta} ce mois`}
           />
-          <div className="mt-5 h-80">
+          <div className="mt-5 h-64 min-w-0 sm:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={evolution} margin={{ top: 10, right: 12, left: -18, bottom: 0 }}>
                 <defs>
                   <linearGradient id="applicationsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8f4a56" stopOpacity={0.28} />
-                    <stop offset="95%" stopColor="#8f4a56" stopOpacity={0.02} />
+                    <stop offset="5%" stopColor="#147a54" stopOpacity={0.28} />
+                    <stop offset="95%" stopColor="#147a54" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="#ead7da" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="mois" tickLine={false} axisLine={false} tick={{ fill: '#7a6670', fontSize: 12 }} />
-                <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: '#7a6670', fontSize: 12 }} />
+                <CartesianGrid stroke="#dce9df" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="mois" tickLine={false} axisLine={false} tick={{ fill: '#60756b', fontSize: 12 }} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: '#60756b', fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="total" stroke="#8f4a56" strokeWidth={3} fill="url(#applicationsGradient)" activeDot={{ r: 5 }} />
+                <Area type="monotone" dataKey="total" stroke="#147a54" strokeWidth={3} fill="url(#applicationsGradient)" activeDot={{ r: 5 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </section>
 
-        <section className="panel p-5 xl:col-span-4">
+        <section className="panel min-w-0 p-5 xl:col-span-4">
           <ChartHeader
             title="Repartition des statuts"
             description="Etat actuel des candidatures dans le processus."
             badge={`${acceptanceRate}% acceptes`}
           />
-          <div className="mt-5 h-64">
+          <div className="mt-5 h-60 min-w-0 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={statuts} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92} paddingAngle={4}>
@@ -154,24 +154,24 @@ export default function Dashboard() {
           <div className="mt-4 space-y-3">
             {statuts.length ? statuts.map((item, index) => (
               <div key={item.name} className="flex items-center justify-between gap-3 text-sm">
-                <span className="flex min-w-0 items-center gap-2 text-[#4b3a42]">
+                <span className="flex min-w-0 items-center gap-2 text-[#40574a]">
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: statusColors[index % statusColors.length] }} />
                   <span className="truncate font-semibold">{item.name}</span>
                 </span>
-                <span className="font-black text-[#2e2430]">{formatNumber(item.value)}</span>
+                <span className="font-black text-[#17362b]">{formatNumber(item.value)}</span>
               </div>
-            )) : <p className="text-sm text-[#7a6670]">Aucun statut disponible.</p>}
+            )) : <p className="text-sm text-[#60756b]">Aucun statut disponible.</p>}
           </div>
         </section>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <section className="panel p-5 lg:col-span-2">
+        <section className="panel min-w-0 p-5 lg:col-span-2">
           <ChartHeader
             title="Performance du pipeline"
             description="Comparaison rapide des volumes cles pour visualiser la pression de recrutement."
           />
-          <div className="mt-5 h-72">
+          <div className="mt-5 h-60 min-w-0 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={[
@@ -182,11 +182,11 @@ export default function Dashboard() {
                 ]}
                 margin={{ top: 10, right: 12, left: -18, bottom: 0 }}
               >
-                <CartesianGrid stroke="#ead7da" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#7a6670', fontSize: 12 }} />
-                <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: '#7a6670', fontSize: 12 }} />
+                <CartesianGrid stroke="#dce9df" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#60756b', fontSize: 12 }} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: '#60756b', fontSize: 12 }} />
                 <Tooltip />
-                <Bar dataKey="total" fill="#8f4a56" radius={[6, 6, 0, 0]} barSize={42} />
+                <Bar dataKey="total" fill="#147a54" radius={[6, 6, 0, 0]} barSize={42} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -198,29 +198,29 @@ export default function Dashboard() {
             description="Indicateurs utiles pour la decision rapide."
           />
           <div className="mt-5 space-y-3">
-            <div className="rounded-md border border-[#ead7da] bg-[#fff7f8] p-4">
+            <div className="rounded-md border border-[#dce9df] bg-[#f1f8f3] p-4">
               <div className="flex items-center gap-3">
-                <FiTrendingUp className="text-[#8f4a56]" />
-                <p className="font-bold text-[#2e2430]">Taux d'entretien</p>
+                <FiTrendingUp className="text-[#147a54]" />
+                <p className="font-bold text-[#17362b]">Taux d'entretien</p>
               </div>
-              <p className="mt-3 text-3xl font-black text-[#2e2430]">{interviewRate}%</p>
-              <p className="mt-1 text-sm text-[#7a6670]">Candidatures converties en entretiens.</p>
+              <p className="mt-3 text-3xl font-black text-[#17362b]">{interviewRate}%</p>
+              <p className="mt-1 text-sm text-[#60756b]">Candidatures converties en entretiens.</p>
             </div>
-            <div className="rounded-md border border-[#ead7da] bg-white p-4">
+            <div className="rounded-md border border-[#dce9df] bg-white p-4">
               <div className="flex items-center gap-3">
                 <FiCheckCircle className="text-emerald-600" />
-                <p className="font-bold text-[#2e2430]">Acceptation</p>
+                <p className="font-bold text-[#17362b]">Acceptation</p>
               </div>
-              <p className="mt-3 text-3xl font-black text-[#2e2430]">{acceptanceRate}%</p>
-              <p className="mt-1 text-sm text-[#7a6670]">{acceptedStatus} candidature(s) acceptee(s).</p>
+              <p className="mt-3 text-3xl font-black text-[#17362b]">{acceptanceRate}%</p>
+              <p className="mt-1 text-sm text-[#60756b]">{acceptedStatus} candidature(s) acceptee(s).</p>
             </div>
-            <div className="rounded-md border border-[#ead7da] bg-white p-4">
+            <div className="rounded-md border border-[#dce9df] bg-white p-4">
               <div className="flex items-center gap-3">
                 <FiClock className="text-amber-600" />
-                <p className="font-bold text-[#2e2430]">A traiter</p>
+                <p className="font-bold text-[#17362b]">A traiter</p>
               </div>
-              <p className="mt-3 text-3xl font-black text-[#2e2430]">{formatNumber(pendingStatus)}</p>
-              <p className="mt-1 text-sm text-[#7a6670]">Dossiers encore en attente de decision.</p>
+              <p className="mt-3 text-3xl font-black text-[#17362b]">{formatNumber(pendingStatus)}</p>
+              <p className="mt-1 text-sm text-[#60756b]">Dossiers encore en attente de decision.</p>
             </div>
           </div>
         </section>

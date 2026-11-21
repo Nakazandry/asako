@@ -73,7 +73,7 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={containerRef}>
       <button
-        className="relative grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-[#fff7f8] hover:text-[#8f4a56] active:scale-95"
+        className="relative grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-[#f1f8f3] hover:text-[#147a54] active:scale-95"
         onClick={() => setOpen((current) => !current)}
         aria-label="Notifications"
       >
@@ -86,11 +86,11 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="modal-card absolute right-0 top-full z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-[#ead7da]/80 bg-white text-left shadow-2xl">
-          <div className="flex items-center justify-between gap-3 border-b border-[#f1e2e5]/80 bg-gradient-to-r from-[#fff7f8] to-[#fdf1f3] px-4 py-3">
-            <p className="text-sm font-black text-[#2e2430]">Notifications</p>
+        <div className="modal-card absolute right-0 top-full z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-[#dce9df]/80 bg-white text-left shadow-2xl">
+          <div className="flex items-center justify-between gap-3 border-b border-[#e6eee8]/80 bg-gradient-to-r from-[#f1f8f3] to-[#f7faf7] px-4 py-3">
+            <p className="text-sm font-black text-[#17362b]">Notifications</p>
             {unread > 0 ? (
-              <button className="inline-flex items-center gap-1 rounded-full bg-[#8f4a56] px-2.5 py-1 text-[11px] font-black text-white transition hover:brightness-110" onClick={readAll}>
+              <button className="inline-flex items-center gap-1 rounded-full bg-[#147a54] px-2.5 py-1 text-[11px] font-black text-white transition hover:brightness-110" onClick={readAll}>
                 <FiCheck /> Tout marquer lu
               </button>
             ) : (
@@ -113,8 +113,8 @@ export default function NotificationBell() {
                   <button
                     key={item.id}
                     onClick={() => openItem(item)}
-                    className={`flex w-full items-start gap-3 border-b border-[#f1e2e5]/50 px-4 py-3 text-left transition-colors duration-150 last:border-b-0 ${
-                      item.lu ? 'bg-white hover:bg-[#fff7f8]/70' : 'bg-[#fff7f8]/80 hover:bg-[#fff0f3]/90'
+                    className={`flex w-full items-start gap-3 border-b border-[#e6eee8]/50 px-4 py-3 text-left transition-colors duration-150 last:border-b-0 ${
+                      item.lu ? 'bg-white hover:bg-[#f1f8f3]/70' : 'bg-[#f1f8f3]/80 hover:bg-[#fff0f3]/90'
                     }`}
                   >
                     <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg ${meta.className}`}>
@@ -122,28 +122,28 @@ export default function NotificationBell() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center justify-between gap-2">
-                        <span className={`truncate text-[13px] font-black ${item.lu ? 'text-[#4b3a42]' : 'text-[#2e2430]'}`}>{item.titre}</span>
+                        <span className={`truncate text-[13px] font-black ${item.lu ? 'text-[#40574a]' : 'text-[#17362b]'}`}>{item.titre}</span>
                         {!item.lu && <span className="h-2 w-2 shrink-0 rounded-full bg-rose-500" />}
                       </span>
-                      <span className="mt-0.5 block text-[13px] leading-5 text-[#7a6670]">{item.message}</span>
-                      <span className="mt-1 block text-[11px] font-semibold text-[#b08f99]">{relativeTime(item.date_creation)}</span>
+                      <span className="mt-0.5 block text-[13px] leading-5 text-[#60756b]">{item.message}</span>
+                      <span className="mt-1 block text-[11px] font-semibold text-[#7c9585]">{relativeTime(item.date_creation)}</span>
                     </span>
                   </button>
                 );
               })
             ) : (
               <div className="px-4 py-10 text-center">
-                <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#fff7f8] text-xl text-[#d9a9b2]">
+                <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#f1f8f3] text-xl text-[#82b594]">
                   <FiInbox />
                 </span>
-                <p className="mt-3 text-sm font-bold text-[#2e2430]">Aucune notification</p>
-                <p className="mt-1 text-xs leading-5 text-[#7a6670]">Les alertes de candidatures et d'entretiens apparaitront ici.</p>
+                <p className="mt-3 text-sm font-bold text-[#17362b]">Aucune notification</p>
+                <p className="mt-1 text-xs leading-5 text-[#60756b]">Les alertes de candidatures et d'entretiens apparaitront ici.</p>
               </div>
             )}
           </div>
 
           <button
-            className="flex w-full items-center justify-center gap-1.5 border-t border-[#f1e2e5]/80 bg-[#fff7f8]/70 px-4 py-3 text-xs font-black uppercase tracking-wider text-[#8f4a56] transition-colors hover:bg-[#fff0f3]"
+            className="flex w-full items-center justify-center gap-1.5 border-t border-[#e6eee8]/80 bg-[#f1f8f3]/70 px-4 py-3 text-xs font-black uppercase tracking-wider text-[#147a54] transition-colors hover:bg-[#fff0f3]"
             onClick={() => { setOpen(false); navigate('/notifications'); }}
           >
             Voir toutes les notifications <FiChevronRight />

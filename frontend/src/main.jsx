@@ -15,7 +15,20 @@ createRoot(document.getElementById('root')).render(
         <AuthProvider>
           <NotificationsProvider>
             <App />
-            <Toaster position="top-right" toastOptions={{ duration: 3200 }} />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3200,
+                style: {
+                  border: '1px solid #dce9df',
+                  borderRadius: '14px',
+                  background: '#ffffff',
+                  color: '#17362b',
+                  boxShadow: '0 12px 30px rgba(28, 62, 41, 0.12)',
+                },
+                success: { iconTheme: { primary: '#147a54', secondary: '#ffffff' } },
+              }}
+            />
           </NotificationsProvider>
         </AuthProvider>
       </PreferencesProvider>

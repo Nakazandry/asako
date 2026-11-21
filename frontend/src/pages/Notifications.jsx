@@ -65,7 +65,7 @@ export default function Notifications() {
           { label: 'Total', value: total },
         ]}
         actions={
-          <button className="btn-primary bg-white text-[#8f4a56] hover:bg-[#fff7f8]" disabled={!unread} onClick={markAllRead}>
+          <button className="btn-primary" disabled={!unread} onClick={markAllRead}>
             <FiCheck /> Tout marquer comme lu
           </button>
         }
@@ -83,8 +83,8 @@ export default function Notifications() {
               <button
                 key={item.id}
                 onClick={() => markRead(item)}
-                className={`group flex w-full items-start gap-4 border-b border-[#f1e2e5]/70 px-4 py-4 text-left transition-colors duration-150 last:border-b-0 sm:px-5 ${
-                  unreadItem ? 'bg-[#fff7f8]/70 hover:bg-[#fff0f3]/80' : 'bg-white hover:bg-[#fff7f8]/50'
+                className={`group flex w-full items-start gap-4 border-b border-[#e6eee8]/70 px-4 py-4 text-left transition-colors duration-150 last:border-b-0 sm:px-5 ${
+                  unreadItem ? 'bg-[#f1f8f3]/70 hover:bg-[#fff0f3]/80' : 'bg-white hover:bg-[#f1f8f3]/50'
                 }`}
               >
                 <span className={`relative mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-xl shadow-inner ring-1 ring-white/60 ${meta.className}`}>
@@ -93,11 +93,11 @@ export default function Notifications() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                    <span className={`text-[15px] font-black ${unreadItem ? 'text-[#2e2430]' : 'text-[#4b3a42]'}`}>{item.titre}</span>
-                    <span className={`text-xs font-bold ${unreadItem ? 'text-[#8f4a56]' : 'text-[#b08f99]'}`}>{relativeTime(item.date_creation)}</span>
+                    <span className={`text-[15px] font-black ${unreadItem ? 'text-[#17362b]' : 'text-[#40574a]'}`}>{item.titre}</span>
+                    <span className={`text-xs font-bold ${unreadItem ? 'text-[#147a54]' : 'text-[#7c9585]'}`}>{relativeTime(item.date_creation)}</span>
                   </span>
-                  <span className="mt-1 block text-sm leading-6 text-[#7a6670]">{item.message}</span>
-                  <span className="mt-2 flex items-center gap-2 text-[11px] font-semibold text-[#b08f99]">
+                  <span className="mt-1 block text-sm leading-6 text-[#60756b]">{item.message}</span>
+                  <span className="mt-2 flex items-center gap-2 text-[11px] font-semibold text-[#7c9585]">
                     {formatDate(item.date_creation)}
                     {unreadItem && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-rose-600 ring-1 ring-rose-200/70">
@@ -113,11 +113,11 @@ export default function Notifications() {
       ) : (
         <div className="panel px-4 py-16 text-center">
           <div className="mx-auto max-w-sm">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#fff7f8] text-2xl text-[#d9a9b2] ring-8 ring-[#fff7f8]/60">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#f1f8f3] text-2xl text-[#82b594] ring-8 ring-[#f1f8f3]/60">
               <FiInbox />
             </span>
-            <p className="mt-4 font-bold text-[#2e2430]">Aucune notification</p>
-            <p className="mt-1 text-sm text-[#7a6670]">Vous serez alerte ici lors de nouvelles candidatures, changements de statut ou entretiens.</p>
+            <p className="mt-4 font-bold text-[#17362b]">Aucune notification</p>
+            <p className="mt-1 text-sm text-[#60756b]">Vous serez alerte ici lors de nouvelles candidatures, changements de statut ou entretiens.</p>
           </div>
         </div>
       )}

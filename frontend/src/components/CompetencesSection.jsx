@@ -49,11 +49,11 @@ function LevelField({ value, onChange, disabled, label, id }) {
             }}
             onBlur={() => { if (value === '') onChange(DEFAULT_LEVEL); }}
           />
-          <span className="text-sm font-bold text-[#7a6670]">%</span>
+          <span className="text-sm font-bold text-[#60756b]">%</span>
         </div>
       </div>
       <input
-        className="mt-2 w-full accent-[#8f4a56]"
+        className="mt-2 w-full accent-[#147a54]"
         type="range"
         min="0"
         max="100"
@@ -190,20 +190,20 @@ export default function CompetencesSection() {
     <section className="panel p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#fff7f8] text-[#8f4a56]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#f1f8f3] text-[#147a54]">
             <FiAward />
           </span>
           <div>
-            <h2 className="text-lg font-bold text-[#2e2430]">{t('skills.title')}</h2>
-            <p className="mt-1 text-sm text-[#7a6670]">{t('skills.description')}</p>
+            <h2 className="text-lg font-bold text-[#17362b]">{t('skills.title')}</h2>
+            <p className="mt-1 text-sm text-[#60756b]">{t('skills.description')}</p>
           </div>
         </div>
-        <span className="shrink-0 rounded-full border border-[#ead7da] bg-[#fff7f8] px-3 py-1 text-xs font-bold text-[#8f4a56]">
+        <span className="shrink-0 rounded-full border border-[#dce9df] bg-[#f1f8f3] px-3 py-1 text-xs font-bold text-[#147a54]">
           {competences.length} {t('skills.count')}
         </span>
       </div>
 
-      <form onSubmit={addCompetence} className="mt-5 rounded-md border border-[#ead7da] bg-[#fff7f8]/40 p-4">
+      <form onSubmit={addCompetence} className="mt-5 rounded-md border border-[#dce9df] bg-[#f1f8f3]/40 p-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="relative">
             <label className="label" htmlFor="competence-nom">{t('skills.nameLabel')}</label>
@@ -219,15 +219,15 @@ export default function CompetencesSection() {
               onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
             />
             {showSuggestions && filteredSuggestions.length > 0 && (
-              <ul className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-[#ead7da] bg-white py-1 shadow-xl">
-                <li className="px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#7a6670]">
+              <ul className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-[#dce9df] bg-white py-1 shadow-xl">
+                <li className="px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#60756b]">
                   {t('skills.suggestions')}
                 </li>
                 {filteredSuggestions.map((item) => (
                   <li key={item}>
                     <button
                       type="button"
-                      className="flex w-full items-center px-3 py-2 text-left text-sm font-semibold text-[#2e2430] transition hover:bg-[#fff7f8] hover:text-[#8f4a56]"
+                      className="flex w-full items-center px-3 py-2 text-left text-sm font-semibold text-[#17362b] transition hover:bg-[#f1f8f3] hover:text-[#147a54]"
                       onMouseDown={(e) => {
                         e.preventDefault();
                         setNom(item);
@@ -270,9 +270,9 @@ export default function CompetencesSection() {
             <button type="button" className="btn-secondary mt-3" onClick={load}>{t('skills.retry')}</button>
           </div>
         ) : competences.length === 0 ? (
-          <div className="rounded-md border border-dashed border-[#ead7da] bg-[#fff7f8]/40 px-4 py-8 text-center">
-            <p className="font-bold text-[#2e2430]">{t('skills.empty')}</p>
-            <p className="mt-1 text-sm text-[#7a6670]">{t('skills.emptyHelp')}</p>
+          <div className="rounded-md border border-dashed border-[#dce9df] bg-[#f1f8f3]/40 px-4 py-8 text-center">
+            <p className="font-bold text-[#17362b]">{t('skills.empty')}</p>
+            <p className="mt-1 text-sm text-[#60756b]">{t('skills.emptyHelp')}</p>
           </div>
         ) : (
           competences.map((item) => {
@@ -286,7 +286,7 @@ export default function CompetencesSection() {
                   <>
                     <button
                       type="button"
-                      className="rounded-lg p-2 text-[#8f4a56] transition hover:bg-white hover:text-[#783d47]"
+                      className="rounded-lg p-2 text-[#147a54] transition hover:bg-white hover:text-[#0e6041]"
                       title={t('skills.edit')}
                       aria-label={t('skills.edit')}
                       onClick={() => startEdit(item)}
@@ -306,7 +306,7 @@ export default function CompetencesSection() {
                 )}
               >
                 {isEditing && (
-                  <div className="mt-3 space-y-3 border-t border-[#ead7da] pt-3">
+                  <div className="mt-3 space-y-3 border-t border-[#dce9df] pt-3">
                     <div>
                       <label className="label" htmlFor={`edit-nom-${item.id}`}>{t('skills.nameLabel')}</label>
                       <input

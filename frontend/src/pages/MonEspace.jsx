@@ -52,7 +52,7 @@ export default function MonEspace() {
     { key: 'offre', header: 'Offre', render: (row) => <div><p className="font-semibold text-slate-950">{row.offre_titre}</p><p className="text-xs text-slate-500">{row.offre_localisation}</p></div> },
     { key: 'date_candidature', header: 'Date', render: (row) => formatDate(row.date_candidature) },
     { key: 'statut', header: 'Statut', render: (row) => <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${statusClass(row.statut)}`}>{statusLabel(row.statut)}</span> },
-    { key: 'cv', header: 'CV', render: (row) => <button className="font-semibold text-[#8f4a56] cursor-pointer" onClick={() => voirCv(row.id).catch((e) => alert(e.message))}>Voir PDF</button> },
+    { key: 'cv', header: 'CV', render: (row) => <button className="font-semibold text-[#147a54] cursor-pointer" onClick={() => voirCv(row.id).catch((e) => alert(e.message))}>Voir PDF</button> },
   ], []);
 
   return (
@@ -76,49 +76,49 @@ export default function MonEspace() {
       </div>
       <section className="space-y-3">
         <div>
-          <h2 className="text-lg font-bold text-[#2e2430]">Mes candidatures</h2>
-          <p className="text-sm text-[#7a6670]">Historique des dossiers envoyes.</p>
+          <h2 className="text-lg font-bold text-[#17362b]">Mes candidatures</h2>
+          <p className="text-sm text-[#60756b]">Historique des dossiers envoyes.</p>
         </div>
         <DataTable columns={columns} rows={candidatures} loading={loading} />
       </section>
       <section className="panel p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold text-[#2e2430]">Invitations a des entretiens</h2>
-            <p className="text-sm text-[#7a6670]">Confirmez votre presence en acceptant ou en refusant chaque invitation.</p>
+            <h2 className="text-lg font-bold text-[#17362b]">Invitations a des entretiens</h2>
+            <p className="text-sm text-[#60756b]">Confirmez votre presence en acceptant ou en refusant chaque invitation.</p>
           </div>
-          <span className="grid h-10 w-10 place-items-center rounded-md bg-[#fff7f8] text-[#8f4a56]"><FiCalendar /></span>
+          <span className="grid h-10 w-10 place-items-center rounded-md bg-[#f1f8f3] text-[#147a54]"><FiCalendar /></span>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {entretiens.length ? entretiens.map((item) => {
             const reponse = item.reponse_candidat || EN_ATTENTE;
             const enAttente = reponse === EN_ATTENTE;
             return (
-              <article key={item.id} className="flex flex-col rounded-xl border border-[#ead7da] bg-white p-4 shadow-[0_1px_2px_rgba(46,36,48,0.04)] transition hover:border-[#dcc2c8] hover:shadow-[0_8px_22px_-16px_rgba(46,36,48,0.4)]">
+              <article key={item.id} className="flex flex-col rounded-xl border border-[#dce9df] bg-white p-4 shadow-[0_1px_2px_rgba(46,36,48,0.04)] transition hover:border-[#bdd8c4] hover:shadow-[0_8px_22px_-16px_rgba(46,36,48,0.4)]">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-bold text-[#2e2430]">{item.offre_titre}</p>
-                    <p className="mt-1 text-sm text-[#4b3a42]">
+                    <p className="font-bold text-[#17362b]">{item.offre_titre}</p>
+                    <p className="mt-1 text-sm text-[#40574a]">
                       {formatDate(item.date_entretien)} a {item.heure_entretien ? item.heure_entretien.slice(0, 5) : 'heure a confirmer'}
                     </p>
                   </div>
                   <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${statusClass(reponse)}`}>{statusLabel(reponse)}</span>
                 </div>
-                <dl className="mt-3 grid gap-2 text-sm text-[#4b3a42] sm:grid-cols-2">
+                <dl className="mt-3 grid gap-2 text-sm text-[#40574a] sm:grid-cols-2">
                   <div>
-                    <dt className="text-[11px] font-bold uppercase tracking-wide text-[#7a6670]">Type</dt>
+                    <dt className="text-[11px] font-bold uppercase tracking-wide text-[#60756b]">Type</dt>
                     <dd>{item.type_entretien || '-'}</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] font-bold uppercase tracking-wide text-[#7a6670]">Lieu / lien</dt>
+                    <dt className="text-[11px] font-bold uppercase tracking-wide text-[#60756b]">Lieu / lien</dt>
                     <dd className="break-words">{item.lieu || 'A confirmer'}</dd>
                   </div>
                 </dl>
                 {item.commentaire && (
-                  <p className="mt-3 rounded-md bg-[#fff7f8]/70 p-3 text-sm text-[#4b3a42]">{item.commentaire}</p>
+                  <p className="mt-3 rounded-md bg-[#f1f8f3]/70 p-3 text-sm text-[#40574a]">{item.commentaire}</p>
                 )}
                 {item.date_reponse && (
-                  <p className="mt-2 text-xs font-semibold text-[#7a6670]">Reponse enregistree le {formatDate(item.date_reponse)}</p>
+                  <p className="mt-2 text-xs font-semibold text-[#60756b]">Reponse enregistree le {formatDate(item.date_reponse)}</p>
                 )}
                 {enAttente ? (
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -137,7 +137,7 @@ export default function MonEspace() {
                 )}
               </article>
             );
-          }) : <p className="text-sm text-[#7a6670]">Aucune invitation pour le moment.</p>}
+          }) : <p className="text-sm text-[#60756b]">Aucune invitation pour le moment.</p>}
         </div>
       </section>
       <ConfirmModal

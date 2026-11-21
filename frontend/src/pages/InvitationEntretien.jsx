@@ -65,9 +65,9 @@ export default function InvitationEntretien() {
   if (error || !entretien) {
     return (
       <div className="panel mx-auto max-w-xl p-8 text-center">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#fff7f8] text-2xl text-[#d9a9b2]"><FiXCircle /></span>
-        <h1 className="mt-4 text-lg font-bold text-[#2e2430]">Invitation indisponible</h1>
-        <p className="mt-2 text-sm text-[#7a6670]">{error || 'Invitation introuvable'}</p>
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#f1f8f3] text-2xl text-[#82b594]"><FiXCircle /></span>
+        <h1 className="mt-4 text-lg font-bold text-[#17362b]">Invitation indisponible</h1>
+        <p className="mt-2 text-sm text-[#60756b]">{error || 'Invitation introuvable'}</p>
         <Link className="btn-primary mt-6" to="/mon-espace"><FiArrowLeft /> Retour a mon espace</Link>
       </div>
     );
@@ -88,28 +88,28 @@ export default function InvitationEntretien() {
       <div className="panel p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold text-[#2e2430]">Informations du rendez-vous</h2>
-            <p className="text-sm text-[#7a6670]">Candidature : {entretien.offre_titre || '-'}</p>
+            <h2 className="text-lg font-bold text-[#17362b]">Informations du rendez-vous</h2>
+            <p className="text-sm text-[#60756b]">Candidature : {entretien.offre_titre || '-'}</p>
           </div>
           <span className={`rounded-full border px-3 py-1 text-xs font-bold ${statusClass(reponse)}`}>{statusLabel(reponse)}</span>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {details.map(({ label, value, icon: Icon }) => (
-            <div key={label} className="rounded-lg border border-[#ead7da] bg-[#fff7f8]/50 p-3">
-              <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-[#7a6670]"><Icon /> {label}</p>
-              <p className="mt-1 break-words text-sm font-semibold text-[#2e2430]">{value}</p>
+            <div key={label} className="rounded-lg border border-[#dce9df] bg-[#f1f8f3]/50 p-3">
+              <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-[#60756b]"><Icon /> {label}</p>
+              <p className="mt-1 break-words text-sm font-semibold text-[#17362b]">{value}</p>
             </div>
           ))}
         </div>
         {entretien.commentaire && (
-          <div className="mt-4 rounded-lg border border-[#ead7da] bg-white p-3">
-            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-[#7a6670]"><FiMessageSquare /> Commentaire</p>
-            <p className="mt-1 text-sm text-[#4b3a42]">{entretien.commentaire}</p>
+          <div className="mt-4 rounded-lg border border-[#dce9df] bg-white p-3">
+            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-[#60756b]"><FiMessageSquare /> Commentaire</p>
+            <p className="mt-1 text-sm text-[#40574a]">{entretien.commentaire}</p>
           </div>
         )}
         {enAttente ? (
-          <div className="mt-6 flex flex-col gap-3 border-t border-[#ead7da] pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-[#7a6670]">
+          <div className="mt-6 flex flex-col gap-3 border-t border-[#dce9df] pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-[#60756b]">
               Votre reponse sera enregistree uniquement apres votre confirmation.
             </p>
             <div className="flex flex-wrap gap-2">
@@ -122,13 +122,13 @@ export default function InvitationEntretien() {
             </div>
           </div>
         ) : (
-          <div className="mt-6 space-y-3 border-t border-[#ead7da] pt-5">
+          <div className="mt-6 space-y-3 border-t border-[#dce9df] pt-5">
             <p className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold ${statusClass(reponse)}`}>
               {reponse === 'Accepté' ? <FiCheckCircle /> : <FiXCircle />}
               {reponse === 'Accepté' ? 'Vous avez accepte cette invitation' : 'Vous avez refuse cette invitation'}
             </p>
             {entretien.date_reponse && (
-              <p className="text-xs font-semibold text-[#7a6670]">Reponse enregistree le {formatDate(entretien.date_reponse)}</p>
+              <p className="text-xs font-semibold text-[#60756b]">Reponse enregistree le {formatDate(entretien.date_reponse)}</p>
             )}
             <div>
               <button className="btn-secondary" onClick={() => navigate('/mon-espace')}>

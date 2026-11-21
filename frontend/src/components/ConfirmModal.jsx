@@ -5,8 +5,8 @@ export default function ConfirmModal({ open, title, message, onCancel, onConfirm
   return (
     <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={onCancel}>
       <div className="modal-card panel w-full max-w-md overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="border-b border-[#ead7da] bg-[#fff7f8]/60 px-5 py-4">
-          <p className="text-xs font-black uppercase tracking-widest text-[#8f4a56]">Confirmation</p>
+        <div className="border-b border-[#dce9df] bg-[#f1f8f3]/60 px-5 py-4">
+          <p className="text-xs font-black uppercase tracking-widest text-[#147a54]">Confirmation</p>
         </div>
         <div className="p-5">
           <div className="flex items-start justify-between gap-4">

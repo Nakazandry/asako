@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
 import AppLayout from './components/AppLayout.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -20,18 +21,25 @@ const Protected = ({ children, role }) => {
   return children;
 };
 
+const OffersLayout = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <AppLayout /> : <Outlet />;
+};
+
 export default function App() {
   const { user } = useAuth();
   const home = user?.role === 'admin' ? '/dashboard' : '/mon-espace';
 
   return (
     <Routes>
+      <Route path="/" element={user ? <Navigate to={home} replace /> : <LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/offres" element={<OffersLayout />}>
+        <Route index element={<Offres />} />
+      </Route>
       <Route element={<Protected><AppLayout /></Protected>}>
-        <Route path="/" element={<Navigate to={home} replace />} />
         <Route path="/dashboard" element={<Protected role="admin"><Dashboard /></Protected>} />
-        <Route path="/offres" element={<Offres />} />
         <Route path="/candidatures" element={<Protected role="admin"><Candidatures /></Protected>} />
         <Route path="/entretiens" element={<Entretiens />} />
         <Route path="/notifications" element={<Notifications />} />
@@ -41,7 +49,7 @@ export default function App() {
         <Route path="/mon-espace" element={<Protected role="candidat"><MonEspace /></Protected>} />
         <Route path="/invitations/:id" element={<Protected role="candidat"><InvitationEntretien /></Protected>} />
       </Route>
-      <Route path="*" element={<Navigate to={home || '/login'} replace />} />
+      <Route path="*" element={<Navigate to={user ? home : '/'} replace />} />
     </Routes>
   );
 }

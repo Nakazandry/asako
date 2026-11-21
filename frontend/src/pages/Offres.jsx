@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiBriefcase, FiCalendar, FiChevronLeft, FiChevronRight, FiClock, FiDollarSign, FiEdit2, FiInbox, FiMapPin, FiPlus, FiSearch, FiSend, FiTrash2, FiUpload, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api, { apiUrl } from '../services/api';
@@ -18,7 +19,7 @@ const todayStr = () => {
 const isExpired = (row) => Boolean(row.date_limite) && row.date_limite.slice(0, 10) < todayStr();
 
 const cardAccents = [
-  { bar: 'from-[#eec4c9] to-[#8f4a56]', tile: 'from-[#fff7f8] to-[#f8e1e5] text-[#8f4a56]', text: 'text-[#8f4a56]', chip: 'bg-[#fff7f8] text-[#8f4a56] ring-[#ead7da]/70' },
+  { bar: 'from-[#b7dec2] to-[#147a54]', tile: 'from-[#f1f8f3] to-[#e6f3e9] text-[#147a54]', text: 'text-[#147a54]', chip: 'bg-[#f1f8f3] text-[#147a54] ring-[#dce9df]/70' },
   { bar: 'from-emerald-300 to-emerald-600', tile: 'from-emerald-50 to-emerald-100 text-emerald-700', text: 'text-emerald-600', chip: 'bg-emerald-50 text-emerald-700 ring-emerald-200/70' },
   { bar: 'from-amber-300 to-amber-500', tile: 'from-amber-50 to-amber-100 text-amber-700', text: 'text-amber-600', chip: 'bg-amber-50 text-amber-700 ring-amber-200/70' },
   { bar: 'from-slate-300 to-slate-500', tile: 'from-slate-100 to-slate-200 text-slate-700', text: 'text-slate-600', chip: 'bg-slate-100 text-slate-700 ring-slate-300/70' },
@@ -26,7 +27,8 @@ const cardAccents = [
 ];
 
 export default function Offres() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -163,6 +165,10 @@ export default function Offres() {
 
   const startApply = (row) => {
     setDetailTarget(null);
+    if (!isAuthenticated) {
+      navigate('/register');
+      return;
+    }
     setApplyTarget(row);
   };
 
@@ -177,7 +183,7 @@ export default function Offres() {
           { label: 'Offres affichees', value: rows.length },
           { label: 'Page', value: meta?.page || 1 },
         ]}
-        actions={isAdmin && <button className="btn-primary bg-white text-[#8f4a56] hover:bg-[#fff7f8]" onClick={() => { resetPhoto(); setEditing(null); setOfferForm(emptyOffer); setFormOpen(true); }}><FiPlus /> Ajouter</button>}
+        actions={isAdmin && <button className="btn-primary" onClick={() => { resetPhoto(); setEditing(null); setOfferForm(emptyOffer); setFormOpen(true); }}><FiPlus /> Ajouter</button>}
       />
       <form className="panel flex flex-col gap-3 p-4 sm:flex-row" onSubmit={(e) => { e.preventDefault(); setPage(1); load(); }}>
         <div className="relative flex-1">
@@ -199,11 +205,11 @@ export default function Offres() {
                 <article
                   key={row.id}
                   onClick={() => setDetailTarget(row)}
-                  className="panel panel-hover group relative flex cursor-pointer flex-col overflow-hidden transition-all duration-200 hover:border-[#dcc2c8] active:scale-[0.99]"
+                  className="panel panel-hover group relative flex cursor-pointer flex-col overflow-hidden transition-all duration-200 hover:border-[#bdd8c4] active:scale-[0.99]"
                 >
                   <span className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent.bar} opacity-90`} />
                   {row.has_photo && (
-                    <div className="relative w-full overflow-hidden bg-[#fff7f8]">
+                    <div className="relative w-full overflow-hidden bg-[#f1f8f3]">
                       <img
                         src={photoSrc(row)}
                         alt={row.titre}
@@ -242,17 +248,17 @@ export default function Offres() {
                         )}
                       </div>
                     )}
-                    <h3 className="mt-4 text-lg font-black leading-snug text-[#2e2430] transition-colors duration-200 group-hover:text-[#8f4a56]">{row.titre}</h3>
-                    <p className="mt-1.5 flex items-center gap-1.5 text-sm text-[#7a6670]">
+                    <h3 className="mt-4 text-lg font-black leading-snug text-[#17362b] transition-colors duration-200 group-hover:text-[#147a54]">{row.titre}</h3>
+                    <p className="mt-1.5 flex items-center gap-1.5 text-sm text-[#60756b]">
                       <FiMapPin className={`shrink-0 ${accent.text}`} /> {row.localisation || 'Localisation non precisee'}
                     </p>
-                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#4b3a42]">{row.description}</p>
+                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#40574a]">{row.description}</p>
                     <div className="mt-auto pt-5">
-                      <div className="flex flex-wrap items-center gap-2 border-t border-[#f1e2e5]/80 pt-4">
+                      <div className="flex flex-wrap items-center gap-2 border-t border-[#e6eee8]/80 pt-4">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black ring-1 ${accent.chip}`}>
                           <FiDollarSign /> {row.salaire || 'A negocier'}
                         </span>
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ring-1 ${expired ? 'bg-rose-50 text-rose-600 ring-rose-200/70' : 'bg-white text-[#7a6670] ring-[#ead7da]/70'}`}>
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ring-1 ${expired ? 'bg-rose-50 text-rose-600 ring-rose-200/70' : 'bg-white text-[#60756b] ring-[#dce9df]/70'}`}>
                           <FiCalendar /> {formatDate(row.date_limite)}
                         </span>
                       </div>
@@ -267,7 +273,7 @@ export default function Offres() {
                         ) : (
                           <button className="btn-primary px-3 py-2" onClick={() => startApply(row)}><FiSend /> Postuler</button>
                         )}
-                        <button className={`ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-black uppercase tracking-wider transition-colors duration-200 ${accent.text} hover:bg-[#fff7f8]`} onClick={() => setDetailTarget(row)}>
+                        <button className={`ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-black uppercase tracking-wider transition-colors duration-200 ${accent.text} hover:bg-[#f1f8f3]`} onClick={() => setDetailTarget(row)}>
                           Details <FiChevronRight />
                         </button>
                       </div>
@@ -278,7 +284,7 @@ export default function Offres() {
             })}
           </div>
           {meta && meta.pages > 1 && (
-            <div className="panel flex flex-col gap-3 px-4 py-3 text-sm font-semibold text-[#7a6670] sm:flex-row sm:items-center sm:justify-between">
+            <div className="panel flex flex-col gap-3 px-4 py-3 text-sm font-semibold text-[#60756b] sm:flex-row sm:items-center sm:justify-between">
               <span>Page {meta.page} sur {meta.pages} · {meta.total} resultat(s)</span>
               <div className="flex gap-2">
                 <button className="btn-secondary px-3 py-1.5" disabled={meta.page <= 1} onClick={() => setPage(meta.page - 1)}>
@@ -294,11 +300,11 @@ export default function Offres() {
       ) : (
         <div className="panel px-4 py-16 text-center">
           <div className="mx-auto max-w-sm">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#fff7f8] text-2xl text-[#d9a9b2] ring-8 ring-[#fff7f8]/60">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#f1f8f3] text-2xl text-[#82b594] ring-8 ring-[#f1f8f3]/60">
               <FiInbox />
             </span>
-            <p className="mt-4 font-bold text-[#2e2430]">Aucune offre trouvee</p>
-            <p className="mt-1 text-sm text-[#7a6670]">Aucun resultat pour cette recherche. Essayez d'autres mots-cles.</p>
+            <p className="mt-4 font-bold text-[#17362b]">Aucune offre trouvee</p>
+            <p className="mt-1 text-sm text-[#60756b]">Aucun resultat pour cette recherche. Essayez d'autres mots-cles.</p>
           </div>
         </div>
       )}
@@ -306,20 +312,20 @@ export default function Offres() {
       {detailTarget && (
         <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={() => setDetailTarget(null)}>
           <div className="modal-card panel max-h-[90vh] w-full max-w-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between gap-3 border-b border-[#ead7da] bg-gradient-to-r from-[#fff7f8] to-[#fdf1f3] px-5 py-4">
+            <div className="flex items-start justify-between gap-3 border-b border-[#dce9df] bg-gradient-to-r from-[#f1f8f3] to-[#f7faf7] px-5 py-4">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#fff7f8] to-[#f8e1e5] text-[#8f4a56] shadow-inner ring-1 ring-[#ead7da]/70">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#f1f8f3] to-[#e6f3e9] text-[#147a54] shadow-inner ring-1 ring-[#dce9df]/70">
                   <FiBriefcase className="text-xl" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-black uppercase tracking-wide text-[#8f4a56]">Detail de l'offre</p>
-                  <h2 className="mt-0.5 truncate text-lg font-black text-[#2e2430]">{detailTarget.titre}</h2>
+                  <p className="text-xs font-black uppercase tracking-wide text-[#147a54]">Detail de l'offre</p>
+                  <h2 className="mt-0.5 truncate text-lg font-black text-[#17362b]">{detailTarget.titre}</h2>
                 </div>
               </div>
               <button className="btn-secondary shrink-0 px-2.5 py-2" onClick={() => setDetailTarget(null)} aria-label="Fermer"><FiX /></button>
             </div>
             {detailTarget.has_photo && (
-              <div className="w-full overflow-hidden bg-[#fff7f8]">
+              <div className="w-full overflow-hidden bg-[#f1f8f3]">
                 <img
                   src={photoSrc(detailTarget)}
                   alt={detailTarget.titre}
@@ -341,31 +347,31 @@ export default function Offres() {
                 )}
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-[#f1e2e5] bg-[#fff7f8]/60 p-3">
+                <div className="rounded-lg border border-[#e6eee8] bg-[#f1f8f3]/60 p-3">
                   <p className="label">Localisation</p>
-                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#2e2430]"><FiMapPin /> {detailTarget.localisation || 'Non precisee'}</p>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#17362b]"><FiMapPin /> {detailTarget.localisation || 'Non precisee'}</p>
                 </div>
-                <div className="rounded-lg border border-[#f1e2e5] bg-[#fff7f8]/60 p-3">
+                <div className="rounded-lg border border-[#e6eee8] bg-[#f1f8f3]/60 p-3">
                   <p className="label">Salaire</p>
-                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#2e2430]"><FiDollarSign /> {detailTarget.salaire || 'A negocier'}</p>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#17362b]"><FiDollarSign /> {detailTarget.salaire || 'A negocier'}</p>
                 </div>
-                <div className="rounded-lg border border-[#f1e2e5] bg-[#fff7f8]/60 p-3">
+                <div className="rounded-lg border border-[#e6eee8] bg-[#f1f8f3]/60 p-3">
                   <p className="label">Date limite</p>
-                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#2e2430]"><FiCalendar /> {formatDate(detailTarget.date_limite)}</p>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#17362b]"><FiCalendar /> {formatDate(detailTarget.date_limite)}</p>
                 </div>
                 {detailTarget.date_creation && (
-                  <div className="rounded-lg border border-[#f1e2e5] bg-[#fff7f8]/60 p-3">
+                  <div className="rounded-lg border border-[#e6eee8] bg-[#f1f8f3]/60 p-3">
                     <p className="label">Publiee le</p>
-                    <p className="mt-1.5 text-sm font-semibold text-[#2e2430]">{formatDate(detailTarget.date_creation)}</p>
+                    <p className="mt-1.5 text-sm font-semibold text-[#17362b]">{formatDate(detailTarget.date_creation)}</p>
                   </div>
                 )}
               </div>
               <div className="mt-5">
                 <p className="label">Description</p>
-                <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[#4b3a42]">{detailTarget.description}</p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[#40574a]">{detailTarget.description}</p>
               </div>
             </div>
-            <div className="flex flex-wrap justify-end gap-2 border-t border-[#ead7da] bg-[#fff7f8]/60 px-5 py-4">
+            <div className="flex flex-wrap justify-end gap-2 border-t border-[#dce9df] bg-[#f1f8f3]/60 px-5 py-4">
               <button className="btn-secondary" onClick={() => setDetailTarget(null)}>Fermer</button>
               {isAdmin ? (
                 <>
@@ -383,9 +389,9 @@ export default function Offres() {
       {formOpen && (
         <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm">
           <form className="modal-card panel max-h-[90vh] w-full max-w-2xl overflow-hidden shadow-2xl" onSubmit={saveOffer}>
-            <div className="border-b border-[#ead7da] px-5 py-4">
-              <p className="text-xs font-black uppercase tracking-wide text-[#8f4a56]">Offre</p>
-              <h2 className="mt-1 text-lg font-black text-[#2e2430]">{editing ? 'Modifier une offre' : 'Ajouter une offre'}</h2>
+            <div className="border-b border-[#dce9df] px-5 py-4">
+              <p className="text-xs font-black uppercase tracking-wide text-[#147a54]">Offre</p>
+              <h2 className="mt-1 text-lg font-black text-[#17362b]">{editing ? 'Modifier une offre' : 'Ajouter une offre'}</h2>
             </div>
             <div className="max-h-[68vh] overflow-y-auto p-5">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -410,7 +416,7 @@ export default function Offres() {
                     <img
                       src={photoPreview || photoSrc(editing)}
                       alt="Apercu de l'offre"
-                      className="block max-h-40 w-auto rounded-lg border border-[#ead7da] object-contain object-center"
+                      className="block max-h-40 w-auto rounded-lg border border-[#dce9df] object-contain object-center"
                       onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
                     />
                   )}
@@ -431,11 +437,11 @@ export default function Offres() {
                     )}
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-[#7a6670]">Formats acceptes : JPEG, PNG, WebP ou GIF · 5 Mo maximum.</p>
+                <p className="mt-2 text-xs text-[#60756b]">Formats acceptes : JPEG, PNG, WebP ou GIF · 5 Mo maximum.</p>
               </div>
             </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-[#ead7da] bg-[#fff7f8]/60 px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-[#dce9df] bg-[#f1f8f3]/60 px-5 py-4">
               <button type="button" className="btn-secondary" onClick={() => { resetPhoto(); setFormOpen(false); }}>Annuler</button>
               <button className="btn-primary">Enregistrer</button>
             </div>
@@ -446,9 +452,9 @@ export default function Offres() {
       {applyTarget && (
         <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm">
           <form className="modal-card panel w-full max-w-xl overflow-hidden shadow-2xl" onSubmit={submitApplication}>
-            <div className="border-b border-[#ead7da] px-5 py-4">
-              <p className="text-xs font-black uppercase tracking-wide text-[#8f4a56]">Candidature</p>
-              <h2 className="mt-1 text-lg font-black text-[#2e2430]">Postuler: {applyTarget.titre}</h2>
+            <div className="border-b border-[#dce9df] px-5 py-4">
+              <p className="text-xs font-black uppercase tracking-wide text-[#147a54]">Candidature</p>
+              <h2 className="mt-1 text-lg font-black text-[#17362b]">Postuler: {applyTarget.titre}</h2>
             </div>
             <div className="space-y-4 p-5">
               <label className="block">
@@ -460,7 +466,7 @@ export default function Offres() {
                 <textarea className="input mt-1 min-h-36" required value={application.lettre_motivation} onChange={(e) => setApplication({ ...application, lettre_motivation: e.target.value })} />
               </label>
             </div>
-            <div className="flex justify-end gap-2 border-t border-[#ead7da] bg-[#fff7f8]/60 px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-[#dce9df] bg-[#f1f8f3]/60 px-5 py-4">
               <button type="button" className="btn-secondary" onClick={() => setApplyTarget(null)}>Annuler</button>
               <button className="btn-primary">Envoyer</button>
             </div>

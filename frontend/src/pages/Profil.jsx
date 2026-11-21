@@ -24,15 +24,15 @@ import CompetencesSection from '../components/CompetencesSection.jsx';
 
 function InfoCard({ icon: Icon, label, value, helper }) {
   return (
-    <div className="rounded-md border border-[#ead7da] bg-white p-4 transition hover:border-[#d9b3ba] hover:shadow-sm">
+    <div className="rounded-md border border-[#dce9df] bg-white p-4 transition hover:border-[#c1dac7] hover:shadow-sm">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#fff7f8] text-[#8f4a56]">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#f1f8f3] text-[#147a54]">
           <Icon />
         </span>
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-[#7a6670]">{label}</p>
-          <p className="mt-1 break-words font-bold text-[#2e2430]">{value || '-'}</p>
-          {helper && <p className="mt-1 text-sm leading-5 text-[#7a6670]">{helper}</p>}
+          <p className="text-xs font-bold uppercase tracking-wide text-[#60756b]">{label}</p>
+          <p className="mt-1 break-words font-bold text-[#17362b]">{value || '-'}</p>
+          {helper && <p className="mt-1 text-sm leading-5 text-[#60756b]">{helper}</p>}
         </div>
       </div>
     </div>
@@ -136,9 +136,9 @@ export default function Profil() {
       <div className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
         {/* Carte identite + photo */}
         <section className="panel overflow-hidden">
-          <div className="relative bg-gradient-to-br from-[#3a2d3f] via-[#2e2430] to-[#231b28] px-6 pb-7 pt-9 text-center text-white">
-            <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-[#EEC4C9]/15 blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-14 h-40 w-40 rounded-full bg-[#8f4a56]/25 blur-2xl" />
+          <div className="relative overflow-hidden bg-[#147a54] px-6 pb-7 pt-9 text-center text-white">
+            <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-14 h-40 w-40 rounded-full bg-emerald-200/10 blur-2xl" />
 
             <div className="relative mx-auto w-fit">
               <UserAvatar
@@ -171,18 +171,18 @@ export default function Profil() {
             </div>
 
             <h2 className="mt-5 text-2xl font-black leading-tight">{fullName || t('profile.userFallback')}</h2>
-            <p className="mt-1 truncate text-sm text-[#f8e1e5]/70">{user?.email}</p>
-            <p className="mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold capitalize text-[#f8e1e5]">
+            <p className="mt-1 truncate text-sm text-emerald-50/90">{user?.email}</p>
+            <p className="mt-3 inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold capitalize text-white">
               {user?.role || 'Compte'}
             </p>
           </div>
 
           <div className="space-y-4 p-6">
-            <div className="flex items-start gap-3 rounded-md border border-[#ead7da] bg-[#fff7f8] p-4">
-              <FiCheckCircle className="mt-0.5 shrink-0 text-[#8f4a56]" />
+            <div className="flex items-start gap-3 rounded-md border border-[#dce9df] bg-[#f1f8f3] p-4">
+              <FiCheckCircle className="mt-0.5 shrink-0 text-[#147a54]" />
               <div>
-                <p className="font-bold text-[#2e2430]">{t('profile.activeTitle')}</p>
-                <p className="mt-1 text-sm leading-6 text-[#7a6670]">{t('profile.activeDescription')}</p>
+                <p className="font-bold text-[#17362b]">{t('profile.activeTitle')}</p>
+                <p className="mt-1 text-sm leading-6 text-[#60756b]">{t('profile.activeDescription')}</p>
               </div>
             </div>
 
@@ -212,8 +212,8 @@ export default function Profil() {
         <section className="panel p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-[#2e2430]">{t('profile.infoTitle')}</h2>
-              <p className="mt-1 text-sm text-[#7a6670]">
+              <h2 className="text-lg font-bold text-[#17362b]">{t('profile.infoTitle')}</h2>
+              <p className="mt-1 text-sm text-[#60756b]">
                 {editing ? t('profile.editDescription') : t('profile.infoDescription')}
               </p>
             </div>
@@ -262,7 +262,7 @@ export default function Profil() {
                   onChange={(e) => setDraft({ ...draft, email: e.target.value })}
                 />
               </label>
-              <div className="mt-5 flex justify-end gap-2 border-t border-[#ead7da] pt-4">
+              <div className="mt-5 flex justify-end gap-2 border-t border-[#dce9df] pt-4">
                 <button type="button" className="btn-secondary" onClick={() => setEditing(false)} disabled={saving}>
                   {t('profile.cancel')}
                 </button>
