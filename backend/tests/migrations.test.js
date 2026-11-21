@@ -43,6 +43,22 @@ test('les colonnes photo du modele Offre sont couvertes par une migration', () =
   );
 });
 
+test('les colonnes photo du modele Utilisateur sont couvertes par une migration', () => {
+  const model = fs.readFileSync(path.join(ROOT, 'models', 'utilisateur.model.js'), 'utf8');
+  const migrations = readMigrations().map((migration) => migration.sql).join('\n');
+
+  assert.match(model, /photo_data/);
+  assert.match(model, /photo_type/);
+  assert.match(
+    migrations,
+    /ALTER TABLE utilisateurs\s+ADD COLUMN IF NOT EXISTS photo_data BYTEA/i
+  );
+  assert.match(
+    migrations,
+    /ALTER TABLE utilisateurs\s+ADD COLUMN IF NOT EXISTS photo_type VARCHAR\(64\)/i
+  );
+});
+
 test('toutes les colonnes inserees par Offre.create sont couvertes', () => {
   const model = fs.readFileSync(MODEL_PATH, 'utf8');
   const migrations = readMigrations().map((migration) => migration.sql).join('\n');

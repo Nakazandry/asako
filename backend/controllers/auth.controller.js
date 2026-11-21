@@ -100,11 +100,11 @@ const getPhoto = async (req, res, next) => {
   try {
     const photo = await Utilisateur.getPhoto(req.user.id);
     if (!photo || !photo.photo_data) {
-      return res.status(404).json({ message: 'Photo de profil introuvable' });
+      return res.status(204).end();
     }
     res.setHeader('Content-Type', photo.photo_type || 'application/octet-stream');
     res.setHeader('Content-Length', photo.photo_data.length);
-    res.setHeader('Cache-Control', 'private, max-age=3600');
+    res.setHeader('Cache-Control', 'private, max-age=0, must-revalidate');
     res.send(photo.photo_data);
   } catch (error) {
     next(error);

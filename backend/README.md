@@ -25,6 +25,9 @@ sans danger de le relancer.
 Sur Render, definir `npm run migrate` comme **Pre-Deploy Command** du service
 backend (ou l'executer une fois depuis le Shell) pour que le schema soit a jour
 avant le demarrage de l'API.
+La migration `005_add_utilisateur_photo.sql` ajoute `photo_data` (BYTEA) et
+`photo_type` (VARCHAR) a `utilisateurs`, necessaires a l'upload et a la lecture
+des photos de profil.
 
 Variables importantes pour Render (Environment du service backend):
 
