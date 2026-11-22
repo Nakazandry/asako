@@ -135,14 +135,21 @@ const sendMessage = async (req, res, next) => {
       conversationId: id,
     });
 
+    const answer = typeof result?.answer === 'string' ? result.answer.trim() : '';
+    if (!answer) {
+      return res.status(AI_ERROR_STATUS.UNAVAILABLE).json({
+        message: AI_ERROR_MESSAGES.UNAVAILABLE,
+      });
+    }
+
     const updated = await ConversationService.appendExchange(conversation, {
       question,
-      answer: result.answer,
+      answer,
     });
 
     res.json({
       conversation: updated,
-      reply: { role: 'assistant', content: result.answer },
+      reply: { role: 'assistant', content: answer },
     });
   } catch (error) {
     const status = AI_ERROR_STATUS[error?.code];

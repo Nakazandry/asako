@@ -39,6 +39,24 @@ Variables importantes pour Render (Environment du service backend):
 - `RESEND_API_KEY`
 - `EMAIL_FROM`
 - `FRONTEND_URL`
+- `GROQ_API_KEY` et `GROQ_MODEL` (fournisseur principal)
+- `GEMINI_API_KEY` et `GEMINI_MODEL` (fournisseur de secours)
+- `AI_PROVIDER_TIMEOUT_MS` (delai par fournisseur, 15000 ms par defaut)
+
+L'assistant IA interroge Groq en premier. Gemini n'est utilise qu'apres une
+erreur temporaire Groq (limite de debit, erreur 5xx, timeout ou erreur reseau).
+Les deux cles sont exclusivement configurees dans l'environnement du backend
+Render et ne doivent jamais etre ajoutees a Vercel ni prefixees par `VITE_`.
+Le modele Groq par defaut est `openai/gpt-oss-120b`; ces modeles peuvent etre
+surcharges depuis l'environnement Render.
+
+```env
+GROQ_API_KEY=
+GROQ_MODEL=openai/gpt-oss-120b
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.6-flash
+AI_PROVIDER_TIMEOUT_MS=15000
+```
 
 ## Notifications e-mail (Resend)
 
@@ -147,9 +165,9 @@ Aucune variable d'e-mail ni cle secrete ne doit etre configuree dans Vercel.
    `EMAIL_DEMO_REDIRECT_TO=nakazandryaaron@gmail.com`.
 3. Redeployer le service (Manual Deploy > Deploy latest commit, ou push sur la
    branche suivie par Render).
-4. Verifier `GET https://<service>.onrender.com/api/health`, lire la ligne
-   `[email] env=production ...` dans les logs, puis tester un parcours reel
-   (candidature, changement de statut, entretien).
+4. Verifier `GET https://<service>.onrender.com/api/health`, puis tester un
+   parcours reel (candidature, changement de statut, entretien) et l'assistant
+   IA. Les logs `[ai]` indiquent le fournisseur retenu et les bascules Groq -> Gemini.
 
 Ne jamais committer la vraie valeur de `RESEND_API_KEY`.
 

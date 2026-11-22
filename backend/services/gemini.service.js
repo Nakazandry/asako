@@ -55,7 +55,17 @@ const getClient = () => {
   }
   if (!client || clientApiKey !== apiKey) {
     // La cle reste uniquement cote backend: elle n'est jamais journalisee ni renvoyee.
-    client = new GoogleGenAI({ apiKey });
+    const configuredTimeout = Number(process.env.AI_PROVIDER_TIMEOUT_MS);
+    const timeout = Number.isFinite(configuredTimeout) && configuredTimeout > 0
+      ? Math.min(Math.max(configuredTimeout, 1000), 60000)
+      : 15000;
+    client = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        timeout,
+        retryOptions: { attempts: 1 },
+      },
+    });
     clientApiKey = apiKey;
   }
   return client;
@@ -170,6 +180,21 @@ const classifyError = (error) => {
 
   if (httpStatus === 400 || /INVALID_ARGUMENT/i.test(text)) {
     return { code: 'INVALID', reason: 'INVALID_ARGUMENT', httpStatus: 400, providerCode, retryable: false };
+  }
+
+  if (
+    httpStatus === 408 ||
+    error?.name === 'TimeoutError' ||
+    error?.name === 'AbortError' ||
+    /timeout|timed out/i.test(String(error?.message ?? ''))
+  ) {
+    return {
+      code: 'UNAVAILABLE',
+      reason: 'TIMEOUT',
+      httpStatus: httpStatus || 408,
+      providerCode: providerCode || '(timeout)',
+      retryable: true,
+    };
   }
 
   if (isNetworkError(error)) {

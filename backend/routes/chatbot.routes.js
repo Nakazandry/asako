@@ -12,7 +12,7 @@ router.get('/conversations/:id', controller.getConversation);
 router.patch('/conversations/:id', controller.renameConversation);
 router.delete('/conversations/:id', controller.deleteConversation);
 
-// Appel effectif a Gemini: limiteur dedie, plus strict que la lecture.
+// Appel effectif aux fournisseurs IA: limiteur dedie, plus strict que la lecture.
 router.post('/conversations/:id/messages', aiChatRateLimiter, controller.sendMessage);
 
 module.exports = router;

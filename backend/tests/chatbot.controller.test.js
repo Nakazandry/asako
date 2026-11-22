@@ -58,6 +58,7 @@ const createHarness = () => {
       history: [],
       appendArgs: null,
       appendResult: null,
+      appendCalls: 0,
     },
     chatbot: { answer: 'Reponse IA', askArgs: null, error: null },
   };
@@ -97,6 +98,7 @@ const createHarness = () => {
       },
       historyForModel: () => state.conversation.history,
       appendExchange: async (conversation, payload) => {
+        state.conversation.appendCalls += 1;
         state.conversation.appendArgs = { conversation, payload };
         return (
           state.conversation.appendResult || {
@@ -230,7 +232,40 @@ test('envoyer un message valide la saisie et transmet l historique', async () =>
     assert.deepEqual(state.chatbot.askArgs.history, state.conversation.history);
     assert.equal(state.chatbot.askArgs.user.id, 1);
     assert.equal(state.conversation.appendArgs.payload.question, 'Quelles sont mes candidatures ?');
+    assert.equal(state.conversation.appendCalls, 1);
     assert.equal(res.payload.reply.content, 'Reponse IA');
+  } finally {
+    state.restore.forEach((restore) => restore());
+  }
+});
+
+test('une reponse IA vide est refusee sans enregistrer l echange', async () => {
+  const state = createHarness();
+  try {
+    state.conversation.conversation = {
+      id: 5,
+      utilisateur_id: 1,
+      titre: 'Nouvelle conversation',
+      messages: [],
+    };
+    state.chatbot.answer = '   ';
+    const res = createRes();
+    const next = createNext();
+
+    await state.controller.sendMessage(
+      {
+        user: { id: 1, role: 'candidat' },
+        params: { id: '5' },
+        body: { message: 'Bonjour' },
+      },
+      res,
+      next
+    );
+
+    assert.equal(res.statusCode, 502);
+    assert.match(res.payload.message, /indisponible/i);
+    assert.equal(state.conversation.appendCalls, 0);
+    assert.equal(next.calls.length, 0);
   } finally {
     state.restore.forEach((restore) => restore());
   }
@@ -285,7 +320,7 @@ test('envoyer un message refuse une conversation non possedee', async () => {
   }
 });
 
-test('les erreurs Gemini sont traduites en statut HTTP sans fuite technique', async () => {
+test('les erreurs du service IA sont traduites en statut HTTP sans fuite technique', async () => {
   const cases = [
     ['RATE_LIMIT', 429],
     ['UNAVAILABLE', 502],

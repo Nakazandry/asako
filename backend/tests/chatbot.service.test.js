@@ -80,8 +80,8 @@ const createHarness = () => {
     entretienArgs: [],
     competenceArgs: [],
     offreArgs: [],
-    geminiArgs: null,
-    geminiError: null,
+    providerArgs: null,
+    providerError: null,
   };
 
   state.restore = [
@@ -112,10 +112,10 @@ const createHarness = () => {
         return OFFRES;
       },
     }),
-    inject('services/gemini.service', {
+    inject('services/ai-provider.service', {
       generate: async (args) => {
-        state.geminiArgs = args;
-        if (state.geminiError) throw state.geminiError;
+        state.providerArgs = args;
+        if (state.providerError) throw state.providerError;
         return { text: 'Reponse de test', model: 'fake-model' };
       },
     }),
@@ -161,7 +161,7 @@ test('le contexte recruteur ne contient aucune identite de candidat', async () =
   }
 });
 
-test('ask construit un prompt borne avec la question et les instructions du role', async () => {
+test('ask conserve le prompt, les instructions de role et l historique pour le fournisseur IA', async () => {
   const state = createHarness();
   try {
     const result = await state.service.ask({
@@ -171,16 +171,16 @@ test('ask construit un prompt borne avec la question et les instructions du role
     });
 
     assert.equal(result.answer, 'Reponse de test');
-    assert.match(state.geminiArgs.prompt, /Quelles sont mes candidatures \?/);
-    assert.match(state.geminiArgs.prompt, /DONNEES DISPONIBLES/);
-    assert.match(state.geminiArgs.systemInstruction, /ne jamais inventer|jamais inventer/i);
-    assert.deepEqual(state.geminiArgs.history, [{ role: 'user', text: 'Bonjour' }]);
+    assert.match(state.providerArgs.prompt, /Quelles sont mes candidatures \?/);
+    assert.match(state.providerArgs.prompt, /DONNEES DISPONIBLES/);
+    assert.match(state.providerArgs.systemInstruction, /ne jamais inventer|jamais inventer/i);
+    assert.deepEqual(state.providerArgs.history, [{ role: 'user', text: 'Bonjour' }]);
 
     const adminState = createHarness();
     try {
       await adminState.service.ask({ user: { id: 1, role: 'admin' }, question: 'Synthese' });
-      assert.match(adminState.geminiArgs.systemInstruction, /recruteur/i);
-      assert.doesNotMatch(adminState.geminiArgs.prompt, /Alice|Martin/);
+      assert.match(adminState.providerArgs.systemInstruction, /recruteur/i);
+      assert.doesNotMatch(adminState.providerArgs.prompt, /Alice|Martin/);
     } finally {
       adminState.restore.forEach((restore) => restore());
     }
@@ -189,12 +189,12 @@ test('ask construit un prompt borne avec la question et les instructions du role
   }
 });
 
-test('les erreurs du service Gemini remontent sans etre masquees', async () => {
+test('les erreurs du service IA remontent sans etre masquees', async () => {
   const state = createHarness();
   try {
     const error = new Error('Limite atteinte');
     error.code = 'RATE_LIMIT';
-    state.geminiError = error;
+    state.providerError = error;
 
     await assert.rejects(
       () => state.service.ask({ user: { id: 7, role: 'candidat' }, question: 'Bonjour' }),

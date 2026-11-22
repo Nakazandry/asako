@@ -2,7 +2,7 @@ const Candidature = require('../models/candidature.model');
 const Entretien = require('../models/entretien.model');
 const Offre = require('../models/offre.model');
 const Competence = require('../models/competence.model');
-const gemini = require('./gemini.service');
+const aiProvider = require('./ai-provider.service');
 const { redactPersonalData } = require('./cv.service');
 
 const MAX_ELEMENTS = 10;
@@ -177,7 +177,7 @@ const ask = async ({ user, question, history = [], conversationId = null }) => {
     `QUESTION : ${String(question ?? '').trim()}`,
   ].join('\n');
 
-  const { text } = await gemini.generate({
+  const { text } = await aiProvider.generate({
     systemInstruction: instruction,
     prompt,
     history,
@@ -185,7 +185,13 @@ const ask = async ({ user, question, history = [], conversationId = null }) => {
     context: { conversationId },
   });
 
-  return { answer: text };
+  if (typeof text !== 'string' || !text.trim()) {
+    const error = new Error("L'assistant IA n'a pas renvoye de reponse exploitable");
+    error.code = 'UNAVAILABLE';
+    throw error;
+  }
+
+  return { answer: text.trim() };
 };
 
 module.exports = {

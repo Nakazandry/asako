@@ -115,8 +115,9 @@ test('le controleur ne fait confiance qu au JWT pour le perimetre', () => {
   assert.match(controller, /AI_ERROR_STATUS/);
 });
 
-test('le service Gemini ne lit la cle que cote serveur et ne journalise rien de sensible', () => {
+test('les fournisseurs IA ne lisent les cles que cote serveur et ne journalisent rien de sensible', () => {
   const gemini = read('services', 'gemini.service.js');
+  const groq = read('services', 'groq.service.js');
 
   assert.match(gemini, /process\.env\.GEMINI_API_KEY/);
   // Un seul point de journalisation est autorise : le diagnostic de panne,
@@ -128,13 +129,20 @@ test('le service Gemini ne lit la cle que cote serveur et ne journalise rien de 
   assert.doesNotMatch(gemini, /console\.\w+\([^)]*question/);
   assert.doesNotMatch(gemini, /console\.\w+\([^)]*prompt/);
   assert.match(gemini, /maxOutputTokens/);
+  assert.match(groq, /process\.env\.GROQ_API_KEY/);
+  assert.match(groq, /Authorization:\s*`Bearer \$\{apiKey\}`/);
+  assert.doesNotMatch(groq, /console\.\w+\([^)]*apiKey/);
 });
 
-test('la cle Gemini reste hors du frontend et documentee dans .env.example', () => {
+test('les cles des fournisseurs IA restent hors du frontend et documentees dans .env.example', () => {
   const envExample = read('.env.example');
 
+  assert.match(envExample, /^GROQ_API_KEY=$/m);
+  assert.match(envExample, /^GROQ_MODEL=/m);
   assert.match(envExample, /^GEMINI_API_KEY=$/m);
-  assert.doesNotMatch(envExample, /VITE_GEMINI/i);
+  assert.match(envExample, /^GEMINI_MODEL=gemini-3\.6-flash$/m);
+  assert.match(envExample, /^AI_PROVIDER_TIMEOUT_MS=\d+$/m);
+  assert.doesNotMatch(envExample, /VITE_(GROQ|GEMINI)/i);
   assert.match(envExample, /GEMINI_MODEL=gemini-3\.6-flash/);
   assert.match(envExample, /GEMINI_THINKING_LEVEL=low/);
   assert.match(envExample, /AI_CHAT_RATE_LIMIT_MAX=/);
