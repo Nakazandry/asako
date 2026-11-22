@@ -1,25 +1,42 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const initialsOf = (user) => `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase() || 'AS';
+const photoRequests = new Map();
+
+const loadProfilePhoto = (userId, revision) => {
+  const cached = photoRequests.get(userId);
+  if (cached?.revision === revision) return cached.promise;
+
+  const promise = api
+    .get('/auth/me/photo', { responseType: 'blob' })
+    .then(({ data, status }) => (status === 204 || !data?.size ? null : data));
+  photoRequests.set(userId, { revision, promise });
+  return promise;
+};
 
 /**
  * Affiche la photo de profil de l'utilisateur connecte (endpoint /auth/me/photo),
  * avec repli sur ses initiales quand il n'en a pas.
  */
 export default function UserAvatar({ user, size = 36, className = '', textClassName = '' }) {
+  const { photoRevision } = useAuth();
   const [url, setUrl] = useState(null);
   const urlRef = useRef(null);
 
   useEffect(() => {
     let active = true;
-    if (!user?.id) return undefined;
+    if (!user?.id || !user?.photo_type) {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      urlRef.current = null;
+      setUrl(null);
+      return undefined;
+    }
 
-    api
-      .get('/auth/me/photo', { responseType: 'blob' })
-      .then((res) => {
+    loadProfilePhoto(user.id, photoRevision)
+      .then((data) => {
         if (!active) return;
-        const data = res.data;
         if (!data || data.type === 'application/json') {
           if (urlRef.current) URL.revokeObjectURL(urlRef.current);
           urlRef.current = null;
@@ -41,7 +58,7 @@ export default function UserAvatar({ user, size = 36, className = '', textClassN
     return () => {
       active = false;
     };
-  }, [user?.id, user?.photo_type, user]);
+  }, [user?.id, user?.photo_type, photoRevision]);
 
   useEffect(
     () => () => {

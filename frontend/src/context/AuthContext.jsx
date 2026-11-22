@@ -9,12 +9,14 @@ export const AuthProvider = ({ children }) => {
     const raw = localStorage.getItem('asako_user');
     return raw ? JSON.parse(raw) : null;
   });
+  const [photoRevision, setPhotoRevision] = useState(0);
 
   const persist = (payload) => {
     localStorage.setItem('asako_token', payload.token);
     localStorage.setItem('asako_user', JSON.stringify(payload.user));
     setToken(payload.token);
     setUser(payload.user);
+    setPhotoRevision((revision) => revision + 1);
   };
 
   const login = async (credentials) => {
@@ -34,16 +36,27 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('asako_user');
     setToken(null);
     setUser(null);
+    setPhotoRevision((revision) => revision + 1);
   };
 
   const setCurrentUser = (nextUser) => {
     localStorage.setItem('asako_user', JSON.stringify(nextUser));
     setUser(nextUser);
+    setPhotoRevision((revision) => revision + 1);
   };
 
   const value = useMemo(
-    () => ({ token, user, isAuthenticated: Boolean(token), login, register, logout, setCurrentUser }),
-    [token, user]
+    () => ({
+      token,
+      user,
+      photoRevision,
+      isAuthenticated: Boolean(token),
+      login,
+      register,
+      logout,
+      setCurrentUser,
+    }),
+    [token, user, photoRevision]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
