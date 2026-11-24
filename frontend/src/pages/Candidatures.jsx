@@ -20,7 +20,7 @@ import ConfirmModal from '../components/ConfirmModal.jsx';
 import { formatDate, statusClass, statusLabel } from '../utils/format.js';
 
 const statuses = ['', 'En attente', 'Entretien', 'Accepté', 'Refusé'];
-const evaluations = ['', 'non_evalue', 'faible', 'moyen', 'excellent'];
+const evaluationOptions = ['', 'non_evalue', 'faible', 'moyen', 'excellent'];
 const EVALUATIONS_STORAGE_KEY = 'asako_candidature_evaluations';
 
 // Les évaluations sont locales à ce navigateur via localStorage.
@@ -65,7 +65,7 @@ export default function Candidatures() {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('date_desc');
   const [loading, setLoading] = useState(false);
-  const [evaluations, setEvaluations] = useState(readEvaluations);
+  const [evaluationsByCandidature, setEvaluationsByCandidature] = useState(readEvaluations);
   const [letter, setLetter] = useState(null);
   const [details, setDetails] = useState(null);
   const [skills, setSkills] = useState([]);
@@ -128,13 +128,13 @@ export default function Candidatures() {
   };
 
   const setEvaluation = (rowId, value) => {
-    const next = { ...evaluations };
+    const next = { ...evaluationsByCandidature };
     if (value === 'non_evalue') delete next[String(rowId)];
     else next[String(rowId)] = value;
 
     try {
       localStorage.setItem(EVALUATIONS_STORAGE_KEY, JSON.stringify(next));
-      setEvaluations(next);
+      setEvaluationsByCandidature(next);
     } catch (_error) {
       toast.error("Impossible d'enregistrer l'evaluation dans ce navigateur.");
     }
@@ -187,7 +187,7 @@ export default function Candidatures() {
     const safeRows = Array.isArray(allRows) ? allRows : [];
     const result = safeRows.filter((row) => {
       const statusMatches = !statut || statusLabel(row.statut) === statusLabel(statut);
-      const evaluation = evaluations[String(row.id)] || '';
+      const evaluation = evaluationsByCandidature[String(row.id)] || '';
       const evaluationMatches =
         !evaluationFilter ||
         (evaluationFilter === 'non_evalue' ? !evaluation : evaluation === evaluationFilter);
@@ -210,7 +210,7 @@ export default function Candidatures() {
       const dateB = new Date(b.date_candidature).getTime() || 0;
       return sort === 'date_asc' ? dateA - dateB : dateB - dateA;
     });
-  }, [allRows, search, statut, evaluationFilter, evaluations, sort]);
+  }, [allRows, search, statut, evaluationFilter, evaluationsByCandidature, sort]);
 
   const pages = Math.ceil(filteredRows.length / pageSize) || 1;
   const safePage = Math.min(page, pages);
@@ -256,7 +256,7 @@ export default function Candidatures() {
       key: 'evaluation',
       header: 'Évaluation',
       render: (row) => {
-        const value = evaluations[String(row.id)] || '';
+        const value = evaluationsByCandidature[String(row.id)] || '';
         return (
           <select
             className={`h-9 min-w-32 rounded-lg border px-2.5 py-1 text-xs font-bold shadow-sm ${evaluationClass(value)} [&>option]:bg-white [&>option]:text-slate-700`}
@@ -264,7 +264,7 @@ export default function Candidatures() {
             onChange={(event) => setEvaluation(row.id, event.target.value)}
             aria-label={`Évaluation de ${row.prenom} ${row.nom}`}
           >
-            {evaluations.slice(1).map((item) => (
+            {evaluationOptions.slice(1).map((item) => (
               <option key={item} value={item}>
                 {evaluationLabel(item === 'non_evalue' ? '' : item)}
               </option>
@@ -313,7 +313,7 @@ export default function Candidatures() {
         </select>
       ),
     },
-  ], [evaluations, statusSaving]);
+  ], [evaluationsByCandidature, statusSaving]);
 
   const hasFilters = search || statut || evaluationFilter;
 
@@ -357,7 +357,7 @@ export default function Candidatures() {
           <label className="block">
             <span className="label inline-flex items-center gap-2"><FiAward /> Évaluation</span>
             <select className="input mt-1" value={evaluationFilter} onChange={(event) => setEvaluationFilter(event.target.value)}>
-              {evaluations.map((item) => (
+              {evaluationOptions.map((item) => (
                 <option key={item || 'all'} value={item}>
                   {item ? evaluationLabel(item === 'non_evalue' ? '' : item) : 'Toutes les évaluations'}
                 </option>
