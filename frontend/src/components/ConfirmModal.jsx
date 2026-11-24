@@ -2,8 +2,11 @@ import { FiAlertTriangle, FiX } from 'react-icons/fi';
 
 export default function ConfirmModal({ open, title, message, onCancel, onConfirm, loading, cancelLabel = 'Annuler', confirmLabel = 'Confirmer' }) {
   if (!open) return null;
+  const handleCancel = () => {
+    if (!loading) onCancel();
+  };
   return (
-    <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={onCancel}>
+    <div className="modal-overlay fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={handleCancel}>
       <div className="modal-card panel w-full max-w-md overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="border-b border-[#dce9df] bg-[#f1f8f3]/60 px-5 py-4">
           <p className="text-xs font-black uppercase tracking-widest text-[#147a54]">Confirmation</p>
@@ -19,14 +22,19 @@ export default function ConfirmModal({ open, title, message, onCancel, onConfirm
                 <p className="mt-1 text-sm leading-6 text-slate-500">{message}</p>
               </div>
             </div>
-            <button className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" onClick={onCancel} aria-label="Fermer">
+            <button className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50" onClick={handleCancel} disabled={loading} aria-label="Fermer">
               <FiX />
             </button>
           </div>
           <div className="mt-6 flex justify-end gap-2">
-            <button className="btn-secondary" onClick={onCancel}>{cancelLabel}</button>
+            <button className="btn-secondary" onClick={handleCancel} disabled={loading}>{cancelLabel}</button>
             <button className="btn-danger" onClick={onConfirm} disabled={loading}>
-              {confirmLabel}
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Enregistrement...
+                </span>
+              ) : confirmLabel}
             </button>
           </div>
         </div>

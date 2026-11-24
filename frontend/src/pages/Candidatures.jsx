@@ -5,6 +5,7 @@ import api, { voirCv } from '../services/api';
 import DataTable from '../components/DataTable.jsx';
 import PageHero from '../components/PageHero.jsx';
 import SkillBar from '../components/SkillBar.jsx';
+import ConfirmModal from '../components/ConfirmModal.jsx';
 import { formatDate, statusClass, statusLabel } from '../utils/format.js';
 
 const statuses = ['', 'En attente', 'Entretien', 'Accepté', 'Refusé'];
@@ -20,6 +21,8 @@ export default function Candidatures() {
   const [skills, setSkills] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
   const [skillsError, setSkillsError] = useState('');
+  const [statusTarget, setStatusTarget] = useState(null);
+  const [statusSaving, setStatusSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -55,13 +58,43 @@ export default function Candidatures() {
     setSkillsError('');
   };
 
-  const changeStatus = async (id, value) => {
+  const requestStatusChange = (row, value) => {
+    if (statusSaving || statusLabel(row.statut) === statusLabel(value)) return;
+    setStatusTarget({ row, statut: value });
+  };
+
+  const cancelStatusChange = () => {
+    if (statusSaving) return;
+    setStatusTarget(null);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!statusTarget || statusSaving) return;
+    const { row, statut: value } = statusTarget;
+    setStatusSaving(true);
     try {
-      await api.patch(`/candidatures/${id}/statut`, { statut: value });
-      toast.success('Statut mis a jour');
-      load();
+      const { data } = await api.patch(`/candidatures/${row.id}/statut`, { statut: value });
+      const nextStatus = statusLabel(data?.statut || value);
+      setRows((current) =>
+        statut
+          ? current
+              .filter((item) => item.id !== row.id || nextStatus === statut)
+              .map((item) =>
+                item.id === row.id ? { ...item, statut: nextStatus } : item
+              )
+          : current.map((item) =>
+              item.id === row.id ? { ...item, ...data, statut: nextStatus } : item
+            )
+      );
+      setDetails((current) =>
+        current?.id === row.id ? { ...current, ...data, statut: nextStatus } : current
+      );
+      setStatusTarget(null);
+      toast.success('Le statut de la candidature a ete mis a jour avec succes.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Modification impossible');
+    } finally {
+      setStatusSaving(false);
     }
   };
 
@@ -82,11 +115,16 @@ export default function Candidatures() {
       </button>
     ) },
     { key: 'actions', header: 'Changer statut', render: (row) => (
-      <select className="input min-w-36" value={row.statut} onChange={(e) => changeStatus(row.id, e.target.value)}>
+      <select
+        className="input min-w-36"
+        value={statusLabel(row.statut)}
+        disabled={statusSaving}
+        onChange={(e) => requestStatusChange(row, e.target.value)}
+      >
         {statuses.filter(Boolean).map((item) => <option key={item} value={item}>{statusLabel(item)}</option>)}
       </select>
     ) },
-  ], []);
+  ], [statusSaving, statut]);
 
   return (
     <div className="space-y-5">
@@ -176,6 +214,21 @@ export default function Candidatures() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={Boolean(statusTarget)}
+        title="Confirmer le changement de statut ?"
+        message={
+          statusTarget
+            ? `Voulez-vous vraiment faire passer cette candidature au statut "${statusLabel(statusTarget.statut)}" ?`
+            : ''
+        }
+        onCancel={cancelStatusChange}
+        onConfirm={confirmStatusChange}
+        loading={statusSaving}
+        cancelLabel="Annuler"
+        confirmLabel="Confirmer"
+      />
     </div>
   );
 }
