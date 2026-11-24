@@ -221,6 +221,7 @@ export default function Candidatures() {
     {
       key: 'candidat',
       header: 'Candidat',
+      width: 220,
       render: (row) => (
         <div className="flex min-w-[190px] items-center gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#e6f3e9] to-[#b7dec2] text-sm font-black text-[#147a54] ring-2 ring-white">
@@ -236,6 +237,7 @@ export default function Candidatures() {
     {
       key: 'offre',
       header: 'Offre',
+      width: 210,
       render: (row) => (
         <div className="min-w-[150px]">
           <p className="max-w-52 truncate font-semibold text-[#40574a]" title={row.offre_titre}>{row.offre_titre}</p>
@@ -246,6 +248,7 @@ export default function Candidatures() {
     {
       key: 'statut',
       header: 'Statut',
+      width: 120,
       render: (row) => (
         <span className={`inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-bold ${statusClass(row.statut)}`}>
           {statusLabel(row.statut)}
@@ -255,6 +258,7 @@ export default function Candidatures() {
     {
       key: 'evaluation',
       header: 'Évaluation',
+      width: 150,
       render: (row) => {
         const value = evaluationsByCandidature[String(row.id)] || '';
         return (
@@ -273,10 +277,11 @@ export default function Candidatures() {
         );
       },
     },
-    { key: 'date_candidature', header: 'Date', render: (row) => <span className="whitespace-nowrap text-xs font-semibold">{formatDate(row.date_candidature)}</span> },
+    { key: 'date_candidature', header: 'Date', width: 105, render: (row) => <span className="whitespace-nowrap text-xs font-semibold">{formatDate(row.date_candidature)}</span> },
     {
       key: 'documents',
       header: 'Documents',
+      width: 180,
       render: (row) => (
         <div className="flex items-center gap-2">
           <button className="btn-secondary h-9 px-2.5" onClick={() => voirCv(row.id).catch((e) => toast.error(e.message))} title="Consulter le CV">
@@ -291,6 +296,7 @@ export default function Candidatures() {
     {
       key: 'details',
       header: 'Profil candidat',
+      width: 155,
       render: (row) => (
         <button className="btn-secondary h-9 px-3" onClick={() => openDetails(row)}>
           <FiUser /> Détails
@@ -300,6 +306,7 @@ export default function Candidatures() {
     {
       key: 'actions',
       header: 'Changer statut',
+      width: 175,
       render: (row) => (
         <select
           className="input h-9 min-w-36 py-1"
@@ -397,6 +404,7 @@ export default function Candidatures() {
         pageSizeOptions={[10, 20, 50]}
         onPageSizeChange={setPageSize}
         resultLabel={filteredRows.length > 1 ? 'résultats' : 'résultat'}
+        tableMinWidth={1315}
       />
 
       {letter && (

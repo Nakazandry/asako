@@ -12,6 +12,7 @@ export default function DataTable({
   pageSizeOptions = [10, 20, 50],
   onPageSizeChange,
   resultLabel = 'resultat(s)',
+  tableMinWidth = 760,
 }) {
   if (loading) return <Loader />;
   const safeColumns = Array.isArray(columns) ? columns : [];
@@ -21,11 +22,20 @@ export default function DataTable({
   return (
     <div className="panel animate-fade-up overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+        <table
+          className="w-full border-collapse text-left text-sm"
+          style={{ minWidth: tableMinWidth }}
+        >
           <thead className="border-b border-[#e6eee8] bg-gradient-to-r from-[#f1f8f3] to-[#f7faf7] text-[11px] uppercase tracking-widest text-[#60756b]">
             <tr>
               {safeColumns.map((column) => (
-                <th key={column.key} className="whitespace-nowrap px-5 py-4 font-black">{column.header}</th>
+                <th
+                  key={column.key}
+                  className={`whitespace-nowrap px-4 py-4 font-black ${column.className || ''}`}
+                  style={column.width ? { width: column.width, minWidth: column.width } : undefined}
+                >
+                  {column.header}
+                </th>
               ))}
             </tr>
           </thead>
@@ -33,7 +43,13 @@ export default function DataTable({
             {safeRows.length ? safeRows.map((row) => (
               <tr key={row.id} className="group transition-colors duration-150 hover:bg-[#f1f8f3]/80">
                 {safeColumns.map((column) => (
-                  <td key={column.key} className="px-5 py-4 align-middle text-[#40574a]">{column.render ? column.render(row) : row[column.key]}</td>
+                  <td
+                    key={column.key}
+                    className={`px-4 py-4 align-middle text-[#40574a] ${column.className || ''}`}
+                    style={column.width ? { width: column.width, minWidth: column.width } : undefined}
+                  >
+                    {column.render ? column.render(row) : row[column.key]}
+                  </td>
                 ))}
               </tr>
             )) : (
