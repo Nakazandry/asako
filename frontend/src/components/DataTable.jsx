@@ -14,6 +14,9 @@ export default function DataTable({
   resultLabel = 'resultat(s)',
 }) {
   if (loading) return <Loader />;
+  const safeColumns = Array.isArray(columns) ? columns : [];
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const safePageSizeOptions = Array.isArray(pageSizeOptions) ? pageSizeOptions : [10, 20, 50];
 
   return (
     <div className="panel animate-fade-up overflow-hidden">
@@ -21,21 +24,21 @@ export default function DataTable({
         <table className="w-full min-w-[760px] border-collapse text-left text-sm">
           <thead className="border-b border-[#e6eee8] bg-gradient-to-r from-[#f1f8f3] to-[#f7faf7] text-[11px] uppercase tracking-widest text-[#60756b]">
             <tr>
-              {columns.map((column) => (
+              {safeColumns.map((column) => (
                 <th key={column.key} className="whitespace-nowrap px-5 py-4 font-black">{column.header}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e6eee8]/80">
-            {rows?.length ? rows.map((row) => (
+            {safeRows.length ? safeRows.map((row) => (
               <tr key={row.id} className="group transition-colors duration-150 hover:bg-[#f1f8f3]/80">
-                {columns.map((column) => (
+                {safeColumns.map((column) => (
                   <td key={column.key} className="px-5 py-4 align-middle text-[#40574a]">{column.render ? column.render(row) : row[column.key]}</td>
                 ))}
               </tr>
             )) : (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-16 text-center">
+                <td colSpan={safeColumns.length} className="px-4 py-16 text-center">
                   <div className="mx-auto max-w-sm">
                     <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#f1f8f3] text-2xl text-[#82b594] ring-8 ring-[#f1f8f3]/60">
                       <FiInbox />
@@ -61,7 +64,7 @@ export default function DataTable({
                   value={pageSize}
                   onChange={(event) => onPageSizeChange(Number(event.target.value))}
                 >
-                  {pageSizeOptions.map((size) => (
+                  {safePageSizeOptions.map((size) => (
                     <option key={size} value={size}>{size}</option>
                   ))}
                 </select>

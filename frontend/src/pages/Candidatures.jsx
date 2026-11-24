@@ -84,12 +84,14 @@ export default function Candidatures() {
         const { data } = await api.get('/candidatures', {
           params: { page: apiPage, limit: 100 },
         });
-        rows.push(...(Array.isArray(data.data) ? data.data : []));
-        pages = Number(data.meta?.pages) || 1;
+        const pageRows = Array.isArray(data?.data) ? data.data : [];
+        rows.push(...pageRows);
+        pages = Number(data?.meta?.pages) || 1;
         apiPage += 1;
       } while (apiPage <= pages);
-      setAllRows(rows);
+      setAllRows(Array.isArray(rows) ? rows : []);
     } catch (error) {
+      setAllRows([]);
       toast.error(error.response?.data?.message || 'Chargement des candidatures impossible');
     } finally {
       setLoading(false);
@@ -156,7 +158,7 @@ export default function Candidatures() {
       const { data } = await api.patch(`/candidatures/${row.id}/statut`, { statut: value });
       const nextStatus = statusLabel(data?.statut || value);
       setAllRows((current) =>
-        current.map((item) =>
+        (Array.isArray(current) ? current : []).map((item) =>
           item.id === row.id ? { ...item, ...data, statut: nextStatus } : item
         )
       );
@@ -182,7 +184,8 @@ export default function Candidatures() {
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLocaleLowerCase();
-    const result = allRows.filter((row) => {
+    const safeRows = Array.isArray(allRows) ? allRows : [];
+    const result = safeRows.filter((row) => {
       const statusMatches = !statut || statusLabel(row.statut) === statusLabel(statut);
       const evaluation = evaluations[String(row.id)] || '';
       const evaluationMatches =
@@ -212,6 +215,7 @@ export default function Candidatures() {
   const pages = Math.ceil(filteredRows.length / pageSize) || 1;
   const safePage = Math.min(page, pages);
   const pagedRows = filteredRows.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const safeSkills = Array.isArray(skills) ? skills : [];
 
   const columns = useMemo(() => [
     {
@@ -451,12 +455,12 @@ export default function Candidatures() {
                   <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
                     {skillsError}
                   </div>
-                ) : skills.length === 0 ? (
+                ) : safeSkills.length === 0 ? (
                   <div className="rounded-md border border-dashed border-[#dce9df] bg-[#f1f8f3]/40 px-4 py-8 text-center text-sm text-[#60756b]">
                     Ce candidat n'a pas encore renseigné de compétence.
                   </div>
                 ) : (
-                  skills.map((item) => <SkillBar key={item.id} nom={item.nom} niveau={item.niveau} />)
+                  safeSkills.map((item) => <SkillBar key={item.id} nom={item.nom} niveau={item.niveau} />)
                 )}
               </div>
             </div>
