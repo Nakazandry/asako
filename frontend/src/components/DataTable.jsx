@@ -1,7 +1,18 @@
 import { FiChevronLeft, FiChevronRight, FiInbox } from 'react-icons/fi';
 import Loader from './Loader.jsx';
 
-export default function DataTable({ columns, rows, loading, empty = 'Aucune donnee', meta, onPageChange }) {
+export default function DataTable({
+  columns,
+  rows,
+  loading,
+  empty = 'Aucun resultat',
+  meta,
+  onPageChange,
+  pageSize,
+  pageSizeOptions = [10, 20, 50],
+  onPageSizeChange,
+  resultLabel = 'resultat(s)',
+}) {
   if (loading) return <Loader />;
 
   return (
@@ -40,8 +51,25 @@ export default function DataTable({ columns, rows, loading, empty = 'Aucune donn
       </div>
       {meta && (
         <div className="flex flex-col gap-3 border-t border-[#e6eee8]/80 bg-[#f1f8f3]/50 px-4 py-3 text-sm font-semibold text-[#60756b] sm:flex-row sm:items-center sm:justify-between">
-          <span>Page {meta.page} sur {meta.pages} · {meta.total} resultat(s)</span>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <span>{meta.total} {resultLabel}</span>
+            {onPageSizeChange && (
+              <label className="flex items-center gap-2">
+                <span className="text-xs">Lignes par page</span>
+                <select
+                  className="input h-9 min-w-20 px-2 py-1"
+                  value={pageSize}
+                  onChange={(event) => onPageSizeChange(Number(event.target.value))}
+                >
+                  {pageSizeOptions.map((size) => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="mr-1 text-xs">Page {meta.page} sur {meta.pages}</span>
             <button className="btn-secondary px-3 py-1.5" disabled={meta.page <= 1} onClick={() => onPageChange(meta.page - 1)}>
               <FiChevronLeft /> Precedent
             </button>
